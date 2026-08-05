@@ -69,8 +69,13 @@ nav.menu a.active { background: rgba(79,209,255,.14); color: var(--cyan); }
 
 /* ================= ГЕРОЙ (главная) ================= */
 .hero { display: grid; grid-template-columns: 1fr auto 1fr; align-items: start; gap: 20px; padding: 40px 0 0; min-height: 900px; }
-.hero-left { max-width: 430px; justify-self: start; align-self: start; margin-top: 140px; }
+.hero-left { max-width: 430px; justify-self: start; align-self: stretch; display: flex; flex-direction: column; margin-top: 140px; }
 .hero-left .hero-cta { margin-top: 40px; }
+/* заголовок записей — компактный, прижат к низу левой колонки (уровень ступней) */
+.latest-head { margin-top: auto; padding-top: 30px; display: flex; flex-direction: column; gap: 4px; }
+.latest-head .lh-tag { color: var(--cyan); font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+.latest-head .lh-title { font-size: 21px; font-weight: 800; letter-spacing: -.3px; }
+.latest-head .lh-sub { color: var(--dim); font-size: 12.5px; line-height: 1.5; margin-top: 2px; }
 h1.hello { font-size: clamp(34px, 4.6vw, 54px); line-height: 1.08; font-weight: 800; letter-spacing: -.5px; }
 h1.hello .grad { background: linear-gradient(90deg, #7dd8ff, #4f8bff 55%, #9a7dff); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .hero-sub { margin-top: 16px; font-size: 15.5px; line-height: 1.65; color: var(--dim); }
@@ -94,7 +99,7 @@ h1.hello .grad { background: linear-gradient(90deg, #7dd8ff, #4f8bff 55%, #9a7df
 .hero-more .card b { color: #fff; }
 
 /* сцена с персонажем — большой вытянутый малыш по центру, ноги у пола */
-.stage { position: relative; width: 480px; height: 850px; display: flex; align-items: flex-end; justify-content: center; align-self: center; }
+.stage { position: relative; width: 480px; height: 850px; display: flex; align-items: flex-end; justify-content: center; align-self: end; }
 .rings { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); pointer-events: none; }
 .rings div { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); border-radius: 50%; border: 1px solid rgba(79,209,255,.2); }
 .rings .r1 { width: 620px; height: 160px; border-color: rgba(79,209,255,.28); box-shadow: 0 0 40px rgba(79,209,255,.08) inset; }
@@ -161,6 +166,12 @@ h1.hello .grad { background: linear-gradient(90deg, #7dd8ff, #4f8bff 55%, #9a7df
 /* ================= СЕКЦИИ ================= */
 section { padding: 44px 0; position: relative; }
 section:last-of-type { padding-bottom: 0; }
+/* секция последних записей — вплотную к ступням малыша */
+.latest-section { padding-top: 0; }
+.latest-section .sec-head { margin-bottom: 22px; }
+.latest-section .sec-tag { font-size: 11px; letter-spacing: 2px; }
+.latest-section h2 { font-size: 24px; margin-top: 6px; }
+.latest-section .sec-sub { font-size: 13px; margin-top: 8px; max-width: 480px; }
 .sec-head { margin-bottom: 36px; }
 .sec-tag { color: var(--cyan); font-size: 12.5px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; }
 h2 { font-size: clamp(26px, 3.4vw, 38px); font-weight: 800; margin-top: 10px; letter-spacing: -.3px; }
