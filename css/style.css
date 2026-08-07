@@ -108,7 +108,7 @@ h1.hello .grad { background: linear-gradient(90deg, #7dd8ff, #4f8bff 55%, #9a7df
 .floor-glow { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); width: 660px; height: 170px; border-radius: 50%; background: radial-gradient(ellipse, rgba(79,209,255,.16), transparent 70%); filter: blur(10px); }
 .hero-char { position: relative; height: 800px; width: 500px; transform-origin: 50% 95%; animation: breathe 4.6s ease-in-out infinite; z-index: 2; cursor: pointer; }
 @keyframes breathe { 0%,100% { transform: scale(1) translateY(0); } 50% { transform: scale(1.03) translateY(-7px); } }
-.hero-char img { width: 100%; height: 100%; object-fit: contain; transition: opacity .25s; border-radius: 18px; box-shadow: 0 0 50px rgba(120,210,255,.28); }
+.hero-char img { width: 100%; height: 100%; object-fit: contain; transition: opacity .25s; }
 .hero-char.tilt { animation: none; }
 .hero-char .glow-eye { position: absolute; inset: 0; pointer-events: none; border-radius: 50%; filter: blur(26px); opacity: 0; background: radial-gradient(circle, rgba(120,210,255,.5), transparent 65%); }
 .hero-char.shine .glow-eye { animation: eyeShine 3.2s ease-in-out infinite; }
