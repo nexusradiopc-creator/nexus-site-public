@@ -352,3 +352,80 @@ body.js .reveal.in { opacity: 1; transform: none; }
 /* v17: заголовки групп статей */
 .kb-group-head { font-size: 20px; font-weight: 800; margin: 30px 0 14px; letter-spacing: .3px; }
 .kb-group + .kb-group-head { margin-top: 38px; }
+
+
+/* ============ v18: адаптация планшет + телефон ============ */
+
+/* --- базовая мобильная оптимизация --- */
+html { -webkit-text-size-adjust: 100%; }
+body { overflow-x: hidden; }
+img, video { max-width: 100%; height: auto; }
+* { -webkit-tap-highlight-color: transparent; }
+a, button, .product-card, .hero-char { touch-action: manipulation; } /* убрать 300мс задержку тапа */
+
+/* --- ПЛАНШЕТ: 761–1080px --- */
+@media (min-width: 761px) and (max-width: 1080px) {
+  .wrap { padding: 0 22px; }
+  .products-grid { grid-template-columns: repeat(2, 1fr); gap: 18px; }
+  .latest-grid { grid-template-columns: repeat(2, 1fr); }
+  .kb-group-head { font-size: 18px; }
+  nav.menu { gap: 14px; }
+  nav.menu a { font-size: 13px; }
+}
+
+/* --- ТЕЛЕФОН: <=760px --- */
+@media (max-width: 760px) {
+  .wrap { padding: 0 16px; }
+
+  /* шапка */
+  header { position: sticky; top: 0; z-index: 50; backdrop-filter: blur(10px); background: rgba(8,12,26,.85); }
+  .nav { flex-wrap: wrap; padding: 10px 0; gap: 8px; }
+  .logo span { font-size: 15px; }
+
+  /* герой */
+  .hero { grid-template-columns: 1fr; gap: 8px; padding-top: 18px; }
+  .hello { font-size: 34px !important; }
+  .hero-sub { font-size: 14.5px; }
+  .stage { width: min(78vw, 320px) !important; height: auto !important; margin: 6px auto 0; justify-self: center !important; grid-row: auto !important; grid-column: auto !important; }
+  .hero-char { height: min(110vw, 470px) !important; width: min(66vw, 280px) !important; margin: 0 auto; }
+  .side-panel { flex-direction: column !important; gap: 12px; }
+  .side-card, .status-block { max-width: 100% !important; }
+  .hero-cta .btn { width: 100%; text-align: center; justify-content: center; }
+
+  /* сетки — в одну колонку */
+  .latest-grid, .products-grid { grid-template-columns: 1fr !important; gap: 14px; }
+  .card.latest-item { padding: 16px 16px 18px; }
+  .card.latest-item h3 { font-size: 16.5px; }
+
+  /* карточки продуктов */
+  .product-card { padding: 20px 18px; border-radius: 16px; }
+  .product-card h3 { font-size: 18.5px; }
+  .p-ico { font-size: 38px; }
+  .p-feats li { font-size: 13px; }
+
+  /* статьи KB */
+  .kb-group-head { font-size: 17px; margin: 24px 0 10px; }
+  .post { padding: 22px 16px; border-radius: 16px; margin-top: 16px; }
+  .post h1 { font-size: 21px; }
+  .post p, .post li { font-size: 14.5px; line-height: 1.65; }
+  .post-nav a { font-size: 12.5px; }
+
+  /* футер */
+  footer { padding: 26px 0 30px; }
+  .foot-bottom { flex-direction: column; gap: 4px; text-align: center; }
+  .fb-text b { font-size: 15px; }
+
+  /* отключить тяжёлые эффекты на мобилках (батарея + FPS) */
+  .glow, .star { animation: none !important; }
+  .hero-char.alive { animation: breathe 5.5s ease-in-out infinite; } /* sway оставить нельзя — конфликтует со скроллом на тач */
+  .hero-char.alive img { translate: none !important; } /* слежение за мышью не имеет смысла на таче */
+  .shine .glow-eye { animation-duration: 5s; }
+  .hearts { display: none; } /* сердечки поверх контента мешают на узком экране */
+}
+
+/* --- мелкие телефоны: <=380px --- */
+@media (max-width: 380px) {
+  .hello { font-size: 28px !important; }
+  .hero-char { width: 82vw !important; }
+  .sec-head h2 { font-size: 20px; }
+}
