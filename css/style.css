@@ -429,3 +429,16 @@ a, button, .product-card, .hero-char { touch-action: manipulation; } /* убра
   .hero-char { width: 82vw !important; }
   .sec-head h2 { font-size: 20px; }
 }
+
+/* v18.1: точечные фиксы после визуальной проверки */
+@media (max-width: 1080px) {
+  .nav { flex-wrap: wrap; }
+  .nav .subscribe-btn { white-space: nowrap; max-width: 150px; overflow: hidden; text-overflow: ellipsis; font-size: 12px; padding: 8px 12px; }
+}
+@media (max-width: 760px) {
+  .hello, .hero-sub, .hero-welcome, .sec-sub, .card.latest-item p { overflow-wrap: break-word; }
+  .hero-left { max-width: 100%; }
+  .hero-cta { align-items: stretch; }
+  .hero-cta .btn { display: flex; }
+  .wrap { padding: 0 14px; }
+}
