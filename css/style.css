@@ -442,3 +442,15 @@ a, button, .product-card, .hero-char { touch-action: manipulation; } /* убра
   .hero-cta .btn { display: flex; }
   .wrap { padding: 0 14px; }
 }
+
+/* v19.1: гарантия от горизонтальной обрезки текста */
+@media (max-width: 760px) {
+  html, body { max-width: 100vw; }
+  .hero-left, .hello, .hero-sub, .hero-welcome, .side-panel, .card.latest-item,
+  .product-card, .post, .sec-head h2, .sec-sub {
+    max-width: 100%; min-width: 0; overflow-wrap: break-word; word-wrap: break-word;
+    hyphens: auto; -webkit-hyphens: auto;
+  }
+  .hello { font-size: clamp(26px, 8vw, 34px) !important; }
+  .stage, .hero-char { max-width: 92vw; }
+}
