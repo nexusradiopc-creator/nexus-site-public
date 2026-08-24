@@ -242,4 +242,24 @@
     m.style.borderRadius = '16px'; m.style.padding = '10px';
     m.style.boxShadow = '0 20px 50px rgba(0,0,0,.5)'; m.style.zIndex = '99';
   });
+
+  /* ---------- reveal-анимации при скролле (v12) ---------- */
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(en => { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } });
+  }, { threshold: 0.18 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  /* ---------- персонаж интересуется продуктами (v12) ---------- */
+  const POSE_BY_CARD = { 'Nexus Command': 'openarms', 'Nexus Guardian': 'writing', 'Nexus Medic': 'reading' };
+  document.querySelectorAll('.product-card').forEach(card => {
+    card.addEventListener('mouseenter', () => {
+      if (isAsleep) return;
+      charEl.classList.add('curious');
+      setPose(POSE_BY_CARD[card.querySelector('h3').textContent.trim()] || 'pointing', 'О, это моя команда! 😎');
+    });
+    card.addEventListener('mouseleave', () => {
+      charEl.classList.remove('curious');
+      if (!isAsleep) setPose('waving', '');
+    });
+  });
 })();
