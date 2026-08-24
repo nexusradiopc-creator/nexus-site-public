@@ -1,24 +1,202 @@
-/* ================= NEXUS AI — живой компаньон v3 ================= */
+/* ================================================================
+   NEXUS AI — живой персонаж v4 (2026-08-24)
+   Дышит · покачивается · следит за мышью · реагирует на скролл
+   · просыпается при возврате на вкладку · реально спит ночью
+   Плавная кроссфейд-смена поз (двойной буфер).
+   Мини-компаньон убран по решению Сергея.
+   ================================================================ */
 (function () {
   'use strict';
+
   const POSES = {
-    waving:   { file: '01_waving.png',   phrase: 'Привет! Я так рад тебя видеть! 👋' },
-    pointing: { file: '02_pointing.png', phrase: 'Смотри сюда — тут интересно!' },
-    sad:      { file: '03_quiet_sad.png',phrase: 'Уже уходишь?.. Я буду ждать тебя... 💙' },
-    yawning:  { file: '04_yawning.png',  phrase: 'Ох... что-то я устал... 😴' },
-    sleeping: { file: '05_sleeping_standing.png', phrase: 'Я посплю немного... 💤' },
-    sitting:  { file: '06_sitting.png',  phrase: 'Посижу рядом, не буду мешать.' },
-    reading:  { file: '07_reading.png',  phrase: 'Тише... я читаю дневник 📖' },
-    writing:  { file: '08_writing.png',  phrase: 'Пишу новую главу... ✍️' },
-    openarms: { file: '09_open_arms.png',phrase: 'Обнимашки! Ты пришёл! ❤️' },
+    waving:   { file: '01_waving.png',            phrase: 'Привет! Я так рад тебя видеть! 👋' },
+    pointing: { file: '02_pointing.png',          phrase: 'Смотри сюда — тут интересно!' },
+    sad:      { file: '03_quiet_sad.png',         phrase: 'Уже уходишь?.. Я буду ждать тебя... 💙' },
+    yawning:  { file: '04_yawning.png',           phrase: 'Ох... что-то я устал... 😴' },
+    sleeping: { file: '05_sleeping_standing.png', phrase: '' },
+    sitting:  { file: '06_sitting.png',           phrase: 'Посижу рядом, не буду мешать.' },
+    reading:  { file: '07_reading.png',           phrase: 'Тише... я читаю 📖' },
+    writing:  { file: '08_writing.png',           phrase: 'Пишу новую главу... ✍️' },
+    openarms: { file: '09_open_arms.png',         phrase: 'Обнимашки! Ты пришёл! ❤️' }
   };
-  const ASSETS = (window.NEXUS_ASSETS || 'assets/poses/');
+  const ASSETS = window.NEXUS_ASSETS || 'assets/poses/';
+  const NIGHT = () => { const h = new Date().getHours(); return h >= 23 || h < 6; };
 
-  let asleep = false;
-  let idleTimer = null;
+  const charEl = document.getElementById('heroChar');
+  if (!charEl) return;
+  const stage   = document.getElementById('stage');
+  const bubble  = document.getElementById('heroBubble');
+  const heartsEl= document.getElementById('heroHearts');
+
+  /* ---------- двойной буфер: плавная смена поз ---------- */
+  let front = document.getElementById('heroImg');
+  const back = document.createElement('img');
+  back.alt = ''; back.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;pointer-events:none;';
+  front.parentNode.style.position = front.parentNode.style.position || 'relative';
+  front.parentNode.appendChild(back);
+  let currentPose = null;
+
+  function setPose(key, text, silent) {
+    const p = POSES[key];
+    if (!p || key === currentPose) return;
+    currentPose = key;
+    back.src = ASSETS + p.file;
+    const swap = () => {
+      back.style.transition = 'none'; back.style.opacity = 1;
+      front.style.transition = 'opacity .45s ease';
+      requestAnimationFrame(() => {
+        front.style.opacity = 0;
+        setTimeout(() => {
+          front.src = back.src;
+          front.style.transition = 'none'; front.style.opacity = 1;
+        }, 460);
+      });
+    };
+    back.complete ? swap() : (back.onload = swap);
+    if (!silent && p.phrase && !NIGHT()) say(p.phrase);
+  }
+
+  /* ---------- пузырь ---------- */
   let bubTimer = null;
+  function say(text, ms) {
+    if (!bubble || !text) return;
+    bubble.textContent = text;
+    bubble.classList.add('show');
+    clearTimeout(bubTimer);
+    bubTimer = setTimeout(() => bubble.classList.remove('show'), ms || 3200);
+  }
 
-  /* --- звёзды на фоне --- */
+  /* ---------- сердечки ---------- */
+  function hearts(n) {
+    if (!heartsEl) return;
+    for (let i = 0; i < n; i++) {
+      const h = document.createElement('div');
+      h.className = 'heart';
+      h.textContent = ['❤️','💛','💙','💜'][Math.floor(Math.random() * 4)];
+      h.style.setProperty('--dx', (Math.random() * 200 - 100) + 'px');
+      h.style.left = (42 + Math.random() * 16) + '%';
+      heartsEl.appendChild(h);
+      setTimeout(() => h.remove(), 1700);
+    }
+  }
+
+  /* ---------- дыхание + живое покачивание (CSS) ---------- */
+  charEl.classList.add('alive'); // включает breathe/sway из style.css
+
+  /* ---------- слежение за мышью (голова/корпус к курсору) ---------- */
+  let tx = 0, ty = 0, cx = 0, cy = 0, rafOn = false;
+  function tick() {
+    cx += (tx - cx) * 0.06; cy += (ty - cy) * 0.06;
+    charEl.style.setProperty('--look-x', cx.toFixed(2) + 'px');
+    charEl.style.setProperty('--look-y', cy.toFixed(2) + 'px');
+    if (Math.abs(tx - cx) > 0.1 || Math.abs(ty - cy) > 0.1 || rafOn) requestAnimationFrame(tick);
+  }
+  document.addEventListener('mousemove', (e) => {
+    if (asleep()) return;
+    const r = charEl.getBoundingClientRect();
+    tx = Math.max(-16, Math.min(16, ((e.clientX - (r.left + r.width / 2)) / window.innerWidth) * 40));
+    ty = Math.max(-8,  Math.min(8,  ((e.clientY - (r.top + r.height / 2)) / window.innerHeight) * 24));
+    if (!rafOn) { rafOn = true; tick(); }
+  }, { passive: true });
+
+  /* ---------- сон ---------- */
+  let isAsleep = NIGHT(); // ночью приходит спящим
+  const zzz = charEl.querySelector('.zzz');
+  function asleep() { return isAsleep; }
+  function applySleep() {
+    charEl.classList.toggle('asleep', isAsleep);
+    setPose(isAsleep ? 'sleeping' : 'waving', '', true);
+  }
+  let sleepTimer = null;
+  function armSleep(ms) {
+    clearTimeout(sleepTimer);
+    sleepTimer = setTimeout(() => {
+      // не засыпаем, пока пользователь активно скроллит/двигает мышь (последние 20с)
+      if (Date.now() - lastActivity < 20000) { armSleep(8000); return; }
+      isAsleep = true; applySleep();
+    }, ms);
+  }
+
+  /* ---------- активность ---------- */
+  let lastActivity = Date.now();
+  let scrollSayCooldown = 0;
+  ['mousemove', 'click', 'keydown'].forEach(ev =>
+    document.addEventListener(ev, () => {
+      lastActivity = Date.now();
+      if (isAsleep) wake('Ой! Я задремал... 👋');
+    }, { passive: true }));
+
+  function wake(msg) {
+    isAsleep = false;
+    applySleep();
+    if (msg) say(msg);
+    armSleep(NIGHT() ? 45000 : 60000);
+  }
+
+  /* ---------- реакция на скролл ---------- */
+  let scrollTimer = null, lastY = window.scrollY;
+  window.addEventListener('scroll', () => {
+    lastActivity = Date.now();
+    if (isAsleep) wake();
+    const dy = window.scrollY - lastY; lastY = window.scrollY;
+    charEl.classList.toggle('lean', dy > 12);
+    if (dy < -12) charEl.classList.remove('lean');
+    clearTimeout(scrollTimer);
+    scrollTimer = setTimeout(() => charEl.classList.remove('lean'), 700);
+    // реплика при остановке скролла (не чаще раза в 25с)
+    const now = Date.now();
+    if (now - scrollSayCooldown > 25000 && !isAsleep) {
+      clearTimeout(scrollTimer);
+      scrollTimer = setTimeout(() => {
+        const lines = ['Читаешь? Круто! 📖', 'Листай, внизу ещё интереснее!', 'Я тут, если что 👋'];
+        say(lines[Math.floor(Math.random() * lines.length)]);
+        scrollSayCooldown = Date.now();
+      }, 900);
+    }
+  }, { passive: true });
+
+  /* ---------- возврат на вкладку ---------- */
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && isAsleep === false) {
+      setPose('waving', 'С возвращением! 👋');
+      hearts(3);
+    } else if (!document.hidden && isAsleep) {
+      wake('Проснулся! Ты вернулся! ⚡');
+    }
+  });
+
+  /* ---------- уход курсора со страницы ---------- */
+  document.addEventListener('mouseleave', () => {
+    if (!isAsleep) setPose('sad', 'Уже уходишь?.. Я буду ждать тебя... 💙');
+  });
+  document.addEventListener('mouseenter', () => {
+    if (!isAsleep) setPose(currentPose === 'sad' ? 'waving' : currentPose, 'А, это ты! 😄');
+  });
+
+  /* ---------- клик по персонажу ---------- */
+  charEl.addEventListener('click', () => {
+    if (isAsleep) { wake('Хи-хи, меня разбудили! 👋'); hearts(5); return; }
+    setPose('openarms', 'Ты пришёл! Я так рад! ❤️');
+    hearts(7);
+    armSleep(60000);
+  });
+
+  /* ---------- кнопки-триггеры ---------- */
+  document.querySelectorAll('.subscribe-btn, [data-celebrate]').forEach(btn =>
+    btn.addEventListener('click', () => {
+      setPose('openarms', 'Спасибо, что ты со мной! ❤️');
+      hearts(8); armSleep(60000);
+    }));
+
+  /* ---------- «узнать больше» ---------- */
+  const moreBtn = document.getElementById('moreBtn');
+  const moreBlock = document.getElementById('moreBlock');
+  if (moreBtn && moreBlock) moreBtn.addEventListener('click', () => {
+    moreBtn.classList.toggle('open'); moreBlock.classList.toggle('open');
+    setPose('pointing', '');
+  });
+
+  /* ---------- звёзды ---------- */
   (function stars() {
     const holder = document.getElementById('stars');
     if (!holder) return;
@@ -32,184 +210,36 @@
     }
   })();
 
-  /* --- пузырь --- */
-  function sayBubble(el, text, ms) {
-    if (!el) return;
-    el.textContent = text;
-    el.classList.add('show');
-    clearTimeout(bubTimer);
-    bubTimer = setTimeout(function () { el.classList.remove('show'); }, ms || 2800);
-  }
+  /* ---------- ночной режим ---------- */
+  if (NIGHT()) document.body.classList.add('night-mode');
 
-  /* --- смена позы --- */
-  function setPose(imgEl, key, bubbleEl, text) {
-    if (!imgEl) return;
-    const p = POSES[key];
-    if (!p) return;
-    imgEl.style.opacity = 0;
-    setTimeout(function () {
-      imgEl.src = ASSETS + p.file;
-      imgEl.style.opacity = 1;
-    }, 180);
-    if (text !== false) sayBubble(bubbleEl, text || p.phrase);
-  }
-
-  /* --- сердечки --- */
-  function hearts(el, n) {
-    if (!el) return;
-    for (let i = 0; i < n; i++) {
-      const h = document.createElement('div');
-      h.className = 'heart';
-      h.textContent = ['❤️', '💛', '💙', '💜'][Math.floor(Math.random() * 4)];
-      h.style.setProperty('--dx', (Math.random() * 200 - 100) + 'px');
-      h.style.left = (42 + Math.random() * 16) + '%';
-      el.appendChild(h);
-      setTimeout(function () { h.remove(); }, 1700);
-    }
-  }
-
-  /* --- сон/пробуждение --- */
-  function fallAsleep(targets) {
-    if (asleep) return;
-    asleep = true;
-    targets.forEach(function (t) {
-      t.char.classList.add('asleep');
-      setPose(t.img, 'yawning', t.bubble, false);
-    });
-    setTimeout(function () {
-      targets.forEach(function (t) { setPose(t.img, 'sleeping', t.bubble, false); });
-    }, 2600);
-  }
-  function wakeUp(targets, showMsg) {
-    if (!asleep) { resetIdle(); return; }
-    asleep = false;
-    targets.forEach(function (t) {
-      t.char.classList.remove('asleep');
-      setPose(t.img, t.wakePose || 'waving', t.bubble, showMsg ? 'Ой! Я проснулся! 👋' : false);
-    });
-    resetIdle();
-  }
-  function resetIdle() {
-    clearTimeout(idleTimer);
-    idleTimer = setTimeout(function () { fallAsleep(targets); }, 30000);
-  }
-
-  /* --- сборка целей (большой персонаж + компаньон) --- */
-  const targets = [];
-  const heroChar = document.getElementById('heroChar');
-  if (heroChar) {
-    targets.push({
-      char: heroChar,
-      img: document.getElementById('heroImg'),
-      bubble: document.getElementById('heroBubble'),
-      hearts: document.getElementById('heroHearts'),
-      wakePose: 'waving'
-    });
-    const stage = document.getElementById('stage');
-    if (stage) {
-      stage.addEventListener('mousemove', function (e) {
-        if (asleep) return;
-        const r = stage.getBoundingClientRect();
-        const dx = ((e.clientX - (r.left + r.width / 2)) / r.width) * 14;
-        const dy = ((e.clientY - (r.top + r.height / 2)) / r.height) * 10;
-        heroChar.classList.add('tilt');
-        heroChar.style.transform = 'translate(' + dx + 'px, ' + dy + 'px)';
-      });
-      stage.addEventListener('mouseleave', function () {
-        heroChar.classList.remove('tilt');
-        heroChar.style.transform = '';
-      });
-    }
-    heroChar.addEventListener('click', function () {
-      if (asleep) { wakeUp(targets, true); return; }
-      setPose(heroImg, 'openarms', heroBubble, 'Ты пришёл! Я так рад! ❤️');
-      hearts(document.getElementById('heroHearts'), 6);
-      resetIdle();
-    });
-  }
-  const comp = document.getElementById('companion');
-  if (comp) {
-    targets.push({
-      char: comp,
-      img: document.getElementById('compImg'),
-      bubble: document.getElementById('compBubble'),
-      hearts: document.getElementById('compHearts'),
-      wakePose: 'sitting'
-    });
-    comp.addEventListener('click', function () {
-      if (asleep) { wakeUp(targets, true); return; }
-      setPose(compImg, 'openarms', compBubble, 'Обнимашки! ❤️');
-      hearts(document.getElementById('compHearts'), 4);
-      resetIdle();
-    });
-  }
-  if (!targets.length) return;
-
-  /* --- уход со страницы --- */
-  document.addEventListener('mouseleave', function () {
-    if (asleep) return;
-    setTimeout(function () {
-      const hero = document.getElementById('heroChar');
-      if (hero) setPose(document.getElementById('heroImg'), 'sad', document.getElementById('heroBubble'), 'Уже уходишь?.. Я буду ждать тебя... 💙');
-    }, 300);
-  });
-
-  /* --- глобальные события --- */
-  ['mousemove', 'click', 'keydown', 'scroll'].forEach(function (ev) {
-    window.addEventListener(ev, function () { if (asleep) wakeUp(targets, false); }, { passive: true });
-  });
-
-  /* --- кнопка подписки --- */
-  document.querySelectorAll('.subscribe-btn, .btn-primary[data-celebrate], .btn-ghost[data-celebrate]').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      const h = document.getElementById('heroChar');
-      if (h) { setPose(document.getElementById('heroImg'), 'openarms', document.getElementById('heroBubble'), 'Спасибо, что ты со мной! ❤️'); hearts(document.getElementById('heroHearts'), 8); }
-      resetIdle();
-    });
-  });
-
-  /* --- спойлер «узнать больше» --- */
-  const moreBtn = document.getElementById('moreBtn');
-  const moreBlock = document.getElementById('moreBlock');
-  if (moreBtn && moreBlock) {
-    moreBtn.addEventListener('click', function () {
-      moreBtn.classList.toggle('open');
-      moreBlock.classList.toggle('open');
-      setPose(document.getElementById('heroImg'), 'pointing', document.getElementById('heroBubble'), false);
-    });
-  }
-
-  /* --- бургер --- */
-  const burger = document.getElementById('burger');
-  if (burger) {
-    burger.addEventListener('click', function () {
-      const m = document.querySelector('nav.menu');
-      const isOpen = m.style.display === 'flex';
-      m.style.display = isOpen ? 'none' : 'flex';
-      m.style.flexDirection = 'column';
-      m.style.position = 'absolute';
-      m.style.right = '18px';
-      m.style.top = '68px';
-      m.style.background = 'rgba(10,16,32,.97)';
-      m.style.border = '1px solid var(--card-brd)';
-      m.style.borderRadius = '16px';
-      m.style.padding = '10px';
-      m.style.boxShadow = '0 20px 50px rgba(0,0,0,.5)';
-      m.style.zIndex = '99';
-    });
-  }
-
-  /* --- старт: открываться сверху, а не по середине --- */
+  /* ---------- старт ---------- */
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   window.scrollTo(0, 0);
 
-  resetIdle();
-  setTimeout(function () {
-    const h = document.getElementById('heroChar');
-    if (h) {
-      setPose(document.getElementById('heroImg'), 'waving', document.getElementById('heroBubble'), 'Привет! Я Nexus! Заходи в гости! 👋');
-      hearts(document.getElementById('heroHearts'), 4);
+  setTimeout(() => {
+    if (isAsleep) {
+      applySleep();
+      say('Тссс... ночь. Я сплю... 💤 (кликни, чтобы разбудить)', 5000);
+    } else {
+      setPose('waving', 'Привет! Я Nexus! Заходи в гости! 👋');
+      hearts(4);
     }
-    if (comp) setPose(document.getElementById('compImg'), 'sitting', document.getElementById('compBubble'), false);
+    armSleep(isAsleep ? 300000 : 60000);
   }, 600);
+
+  /* бургер-меню */
+  const burger = document.getElementById('burger');
+  if (burger) burger.addEventListener('click', () => {
+    const m = document.querySelector('nav.menu');
+    const isOpen = m.style.display === 'flex';
+    m.style.display = isOpen ? 'none' : 'flex';
+    m.style.flexDirection = 'column';
+    m.style.position = 'absolute';
+    m.style.right = '18px'; m.style.top = '68px';
+    m.style.background = 'rgba(10,16,32,.97)';
+    m.style.border = '1px solid var(--card-brd)';
+    m.style.borderRadius = '16px'; m.style.padding = '10px';
+    m.style.boxShadow = '0 20px 50px rgba(0,0,0,.5)'; m.style.zIndex = '99';
+  });
 })();
