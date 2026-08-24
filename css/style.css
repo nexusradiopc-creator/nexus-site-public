@@ -311,10 +311,11 @@ body.night-mode .hero-char { filter: brightness(.85) saturate(.9); }
 .p-feats li::before { content: '⚡'; position: absolute; left: 0; top: 0; font-size: 11px; }
 .p-cta { margin-top: auto; font-weight: 700; font-size: 14px; color: #58a6ff; transition: gap .2s; }
 
-/* reveal при скролле */
-.reveal { opacity: 0; transform: translateY(34px); transition: opacity .7s ease, transform .7s cubic-bezier(.2,.7,.3,1); }
+/* reveal при скролле — прячем ТОЛЬКО когда JS точно работает (body.js) */
+body.js .reveal { opacity: 0; transform: translateY(34px); transition: opacity .7s ease, transform .7s cubic-bezier(.2,.7,.3,1); }
+body.js .reveal.in { opacity: 1; transform: none; }
 .reveal.in { opacity: 1; transform: none; }
-@media (prefers-reduced-motion: reduce) { .reveal { transition: none; opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { body.js .reveal { transition: none; opacity: 1; transform: none; } }
 
 /* персонаж реагирует на карточки продуктов */
 .hero-char.curious { scale: 1.04; rotate: 0deg !important; }
