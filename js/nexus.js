@@ -92,7 +92,7 @@
     if (Math.abs(tx - cx) > 0.1 || Math.abs(ty - cy) > 0.1 || rafOn) requestAnimationFrame(tick);
   }
   document.addEventListener('mousemove', (e) => {
-    if (asleep()) return;
+    if (asleep() || IS_TOUCH === true) return;
     const r = charEl.getBoundingClientRect();
     tx = Math.max(-16, Math.min(16, ((e.clientX - (r.left + r.width / 2)) / window.innerWidth) * 40));
     ty = Math.max(-8,  Math.min(8,  ((e.clientY - (r.top + r.height / 2)) / window.innerHeight) * 24));
@@ -166,10 +166,10 @@
   });
 
   /* ---------- уход курсора со страницы ---------- */
-  document.addEventListener('mouseleave', () => {
+  if (!IS_TOUCH) document.addEventListener('mouseleave', () => {
     if (!isAsleep) setPose('sad', 'Уже уходишь?.. Я буду ждать тебя... 💙');
   });
-  document.addEventListener('mouseenter', () => {
+  if (!IS_TOUCH) document.addEventListener('mouseenter', () => {
     if (!isAsleep) setPose(currentPose === 'sad' ? 'waving' : currentPose, 'А, это ты! 😄');
   });
 
@@ -242,6 +242,17 @@
     m.style.borderRadius = '16px'; m.style.padding = '10px';
     m.style.boxShadow = '0 20px 50px rgba(0,0,0,.5)'; m.style.zIndex = '99';
   });
+
+  /* ---------- мобильная оптимизация (v18) ---------- */
+  const IS_TOUCH = matchMedia('(hover: none)').matches || 'ontouchstart' in window;
+  if (IS_TOUCH) {
+    // слежение за мышью и «уход курсора» не имеют смысла на таче
+    // реплики по тапам уже работают через click-обработчики ниже
+    document.addEventListener('touchstart', () => {
+      lastActivity = Date.now();
+      if (isAsleep) wake('Проснулся! 👋');
+    }, { passive: true });
+  }
 
   /* ---------- reveal-анимации при скролле (v13.1) ---------- */
   document.body.classList.add('js'); // прятать .reveal можно только теперь
