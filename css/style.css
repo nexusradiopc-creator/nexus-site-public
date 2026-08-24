@@ -268,3 +268,15 @@ footer { border-top: 1px solid rgba(120,200,255,.12); padding: 18px 0 16px; posi
   .companion { width: 90px; height: 140px; left: 10px; bottom: 10px; }
   .wrap { padding: 0 14px; }
 }
+
+/* ============ v11: живой персонаж (24.08.2026) ============ */
+/* слежение за мышью: мягкий сдвиг через CSS-переменные, не конфликтует с breathe */
+.hero-char.alive { animation: breathe 4.6s ease-in-out infinite, sway 7s ease-in-out infinite; }
+@keyframes sway { 0%,100% { rotate: -1.2deg; } 50% { rotate: 1.2deg; } }
+.hero-char.alive .look { transition: none; }
+.hero-char.alive img { translate: var(--look-x, 0) var(--look-y, 0); will-change: translate; }
+/* наклон в сторону скролла */
+.hero-char.alive.lean { rotate: 3deg; transition: rotate .35s ease; }
+.hero-char.alive { transition: rotate .5s ease; }
+/* ночью — приглушить сцену слегка */
+body.night-mode .hero-char { filter: brightness(.85) saturate(.9); }
