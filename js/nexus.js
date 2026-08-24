@@ -243,7 +243,9 @@
     m.style.boxShadow = '0 20px 50px rgba(0,0,0,.5)'; m.style.zIndex = '99';
   });
 
-  /* ---------- reveal-анимации при скролле (v12) ---------- */
+  /* ---------- reveal-анимации при скролле (v13.1) ---------- */
+  document.body.classList.add('js'); // прятать .reveal можно только теперь
+
   const io = new IntersectionObserver((entries) => {
     entries.forEach(en => { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } });
   }, { threshold: 0.18 });
