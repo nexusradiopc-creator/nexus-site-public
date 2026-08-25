@@ -454,3 +454,55 @@ a, button, .product-card, .hero-char { touch-action: manipulation; } /* убра
   .hello { font-size: clamp(26px, 8vw, 34px) !important; }
   .stage, .hero-char { max-width: 92vw; }
 }
+
+
+/* ============ v23: навигация и UX ============ */
+/* хлебные крошки */
+.crumbs { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 13px; color: #7d8db0; margin: 18px 0 4px; }
+.crumbs a { color: #7fb3ff; text-decoration: none; }
+.crumbs a:hover { text-decoration: underline; }
+.crumbs .sep { opacity: .5; }
+/* кнопка назад */
+.back-btn { display: inline-flex; align-items: center; gap: 6px; background: rgba(31,111,235,.15); border: 1px solid rgba(88,166,255,.45); color: #7fb3ff; border-radius: 10px; padding: 7px 14px; font-size: 13.5px; font-weight: 600; cursor: pointer; text-decoration: none; transition: background .2s; margin-bottom: 8px; }
+.back-btn:hover { background: rgba(31,111,235,.35); }
+/* плавающая «наверх» */
+.to-top { position: fixed; right: 22px; bottom: 26px; width: 46px; height: 46px; border-radius: 50%; background: rgba(28,40,66,.92); border: 1px solid rgba(88,166,255,.5); color: #7fb3ff; font-size: 20px; cursor: pointer; opacity: 0; pointer-events: none; transition: opacity .3s, transform .3s; transform: translateY(12px); z-index: 60; backdrop-filter: blur(6px); }
+.to-top.show { opacity: 1; pointer-events: auto; transform: none; }
+.to-top:hover { background: #1f6feb; color: #fff; }
+/* прогресс чтения */
+.read-progress { position: fixed; top: 0; left: 0; height: 3px; width: 0%; background: linear-gradient(90deg,#1f6feb,#58c4ff); z-index: 100; transition: width .1s linear; }
+/* оглавление статьи */
+.post-layout { display: grid; grid-template-columns: minmax(0,1fr) 240px; gap: 30px; align-items: start; max-width: 1120px; margin: 30px auto 60px; }
+.post-layout .post { margin: 0; }
+.toc { position: sticky; top: 84px; display: none; background: rgba(20,28,48,.6); border: 1px solid rgba(70,90,140,.4); border-radius: 14px; padding: 16px 14px; font-size: 13px; }
+.toc b { display: block; color: #9cc4ff; margin-bottom: 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+.toc a { display: block; color: #93a5c9; text-decoration: none; padding: 3px 0; border-left: 2px solid transparent; padding-left: 8px; }
+.toc a.active { color: #cfe2ff; border-color: #58a6ff; }
+.toc a:hover { color: #fff; }
+@media (min-width: 1200px) { .toc { display: block; } }
+@media (max-width: 1199px) { .post-layout { grid-template-columns: 1fr; } }
+/* читать далее */
+.more-from { margin-top: 30px; padding-top: 22px; border-top: 1px solid rgba(80,100,150,.3); }
+.more-from b { color: #9cc4ff; display: block; margin-bottom: 10px; }
+.more-from a { display: inline-block; margin: 0 10px 8px 0; color: #8fbaff; text-decoration: none; font-size: 13.5px; }
+.more-from a:hover { text-decoration: underline; }
+/* поделиться */
+.share-btn { display: inline-flex; align-items: center; gap: 6px; background: rgba(63,185,80,.12); border: 1px solid rgba(63,185,80,.45); color: #56d364; border-radius: 10px; padding: 7px 14px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background .2s; }
+.share-btn:hover { background: rgba(63,185,80,.3); }
+/* поиск */
+.search-overlay { position: fixed; inset: 0; background: rgba(5,8,18,.85); backdrop-filter: blur(6px); z-index: 200; display: none; align-items: flex-start; justify-content: center; padding-top: 12vh; }
+.search-overlay.open { display: flex; }
+.search-panel { width: min(640px, 92vw); background: #131b30; border: 1px solid rgba(88,166,255,.4); border-radius: 16px; padding: 18px; box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+.search-panel input { width: 100%; box-sizing: border-box; background: #0d1322; border: 1px solid rgba(88,166,255,.35); border-radius: 10px; color: #eaf2ff; font-size: 16px; padding: 12px 14px; outline: none; }
+.search-results { margin-top: 12px; max-height: 50vh; overflow-y: auto; }
+.search-results a { display: block; padding: 9px 10px; border-radius: 10px; text-decoration: none; color: #cfe2ff; }
+.search-results a:hover { background: rgba(88,166,255,.12); }
+.search-results .r-agent { font-size: 11px; color: #7fb3ff; }
+.search-results .r-title { font-size: 14.5px; font-weight: 600; }
+.search-hint { color: #7d8db0; font-size: 12.5px; margin-top: 8px; }
+.search-trigger { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.14); color: #93a5c9; border-radius: 20px; padding: 6px 14px; font-size: 12.5px; cursor: pointer; margin-right: 8px; }
+.search-trigger kbd { background: rgba(255,255,255,.08); border-radius: 4px; padding: 1px 5px; font-size: 11px; }
+@media (max-width: 760px) {
+  .to-top { right: 14px; bottom: 18px; width: 42px; height: 42px; }
+  .back-float { position: fixed; left: 12px; bottom: 18px; z-index: 60; margin: 0; box-shadow: 0 8px 24px rgba(0,0,0,.5); }
+}
