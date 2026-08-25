@@ -24,6 +24,7 @@
 
   const charEl = document.getElementById('heroChar');
   if (!charEl) return;
+  const IS_TOUCH = matchMedia('(hover: none)').matches || 'ontouchstart' in window;
   const stage   = document.getElementById('stage');
   const bubble  = document.getElementById('heroBubble');
   const heartsEl= document.getElementById('heroHearts');
@@ -244,7 +245,6 @@
   });
 
   /* ---------- мобильная оптимизация (v18) ---------- */
-  const IS_TOUCH = matchMedia('(hover: none)').matches || 'ontouchstart' in window;
   if (IS_TOUCH) {
     // слежение за мышью и «уход курсора» не имеют смысла на таче
     // реплики по тапам уже работают через click-обработчики ниже
