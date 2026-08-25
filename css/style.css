@@ -626,3 +626,20 @@ span.date small { font-size: 10px; color: var(--faint); margin-left: 3px; }
   .about-photo { flex: none; width: 100%; }
   .about-cols { grid-template-columns: 1fr; }
 }
+
+
+/* v48: соцсети */
+.social-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 26px; }
+.social-card { display: flex; gap: 14px; align-items: center; padding: 18px 20px !important; position: relative; transition: transform .25s ease, border-color .25s ease; }
+.social-card:hover { transform: translateY(-3px); border-color: rgba(88,166,255,.55) !important; }
+.s-ico { font-size: 26px; flex: none; }
+.s-info { flex: 1; min-width: 0; }
+.s-info b { display: block; font-size: 16px; }
+.s-info span { color: #7fb3ff; font-size: 12.5px; }
+.s-info p { color: #93a7c9; font-size: 12.5px; line-height: 1.5; margin: 4px 0 0; }
+.s-go { color: #58a6ff; font-size: 13px; font-weight: 600; flex: none; }
+.contact-cta { text-align: center; background: rgba(24,34,58,.7); border: 1px solid rgba(88,166,255,.25); border-radius: 18px; padding: 28px 24px; margin-top: 8px; }
+.contact-cta h3 { margin: 0 0 8px; font-size: 19px; }
+.contact-cta p { color: #aab8d4; margin: 0 0 16px; font-size: 14px; }
+.btn-cta.big { display: inline-block; font-size: 15px; padding: 12px 26px; }
+@media (max-width: 760px) { .social-grid { grid-template-columns: 1fr; } }
