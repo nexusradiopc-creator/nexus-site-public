@@ -559,3 +559,15 @@ a, button, .product-card, .hero-char { touch-action: manipulation; } /* убра
 .pl-step.pl-warn { background: rgba(248,81,73,.16); color: #ff7b72; }
 .pl-arr { color: #5a6c94; font-size: 11px; }
 .p-tag { min-height: 15px; }
+
+/* v43: карточки глав с фото-превью */
+.chapter-card { display: flex !important; gap: 18px; align-items: stretch; padding: 14px !important; overflow: hidden; }
+.ch-thumb { flex: 0 0 150px; border-radius: 12px; overflow: hidden; min-height: 110px; }
+.ch-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .4s ease; }
+.chapter-card:hover .ch-thumb img { transform: scale(1.06); }
+.ch-body { flex: 1; display: flex; flex-direction: column; }
+.ch-body h3 { margin: 4px 0 6px; font-size: 17px; }
+.ch-body p { color: #aab8d4; font-size: 13.5px; line-height: 1.55; margin: 0 0 8px; }
+.ch-body .more { margin-top: auto; color: #58a6ff; font-size: 13px; font-weight: 600; }
+.ch-body .date { color: #7fb3ff; font-size: 12px; }
+@media (max-width: 560px) { .ch-thumb { flex-basis: 100px; } }
