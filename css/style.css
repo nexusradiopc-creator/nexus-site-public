@@ -517,3 +517,12 @@ a, button, .product-card, .hero-char { touch-action: manipulation; } /* убра
   /* на мобилке плавающую «назад» не дублируем — есть в шапке и в конце */
   .back-float { display: none; }
 }
+
+/* v25: кнопки одинакового размера в конце статьи */
+.post-end-actions { align-items: stretch; }
+.post-end-actions .back-btn,
+.post-end-actions .share-btn {
+  flex: 1; max-width: 240px;
+  justify-content: center; text-align: center;
+  padding: 11px 20px; font-size: 14px; border-radius: 12px;
+}
