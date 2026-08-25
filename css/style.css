@@ -571,3 +571,14 @@ a, button, .product-card, .hero-char { touch-action: manipulation; } /* убра
 .ch-body .more { margin-top: auto; color: #58a6ff; font-size: 13px; font-weight: 600; }
 .ch-body .date { color: #7fb3ff; font-size: 12px; }
 @media (max-width: 560px) { .ch-thumb { flex-basis: 100px; } }
+
+/* v44: компактная дата в карточках глав */
+.chapter-card .date {
+  min-width: 0 !important; align-self: flex-start !important;
+  width: auto; flex: none;
+  font-size: 11.5px; padding: 3px 10px; border-radius: 999px;
+  margin-bottom: 2px; display: inline-block; text-align: left;
+}
+.chapter-card .date small { display: inline-block; margin-left: 3px; font-size: 10px; }
+.ch-body { gap: 0; }
+@media (max-width: 560px) { .chapter-card .date { min-width: 0 !important; } }
