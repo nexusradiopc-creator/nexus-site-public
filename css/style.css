@@ -593,4 +593,9 @@ span.date, .ch-body span.date {
   padding: 3px 10px; border-radius: 999px; margin-bottom: 6px;
 }
 span.date small { font-size: 10px; color: var(--faint); margin-left: 3px; }
-.chapter-card { display: flex !important; flex-direction: row !important; }
+@media (min-width: 561px) { .chapter-card { display: flex !important; flex-direction: row !important; } }
+
+@media (max-width: 560px) {
+  .chapter-card { flex-direction: column !important; }
+  .ch-thumb { width: 100%; flex-basis: auto; min-height: 160px; }
+}
