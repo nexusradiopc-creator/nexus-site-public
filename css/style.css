@@ -540,3 +540,13 @@ a, button, .product-card, .hero-char { touch-action: manipulation; } /* убра
   .post-end-actions .back-btn,
   .post-end-actions .share-btn { width: 100%; height: 48px; }
 }
+
+
+/* v29: художественное оформление статей-рассказов */
+.story-photo { margin: 26px 0; border-radius: 18px; overflow: hidden; border: 1px solid rgba(88,166,255,.28); box-shadow: 0 14px 40px rgba(0,0,0,.4); }
+.story-photo img { width: 100%; height: auto; display: block; }
+.story-cap { background: rgba(20,28,48,.85); color: #aab8d4; font-size: 13px; padding: 10px 16px; line-height: 1.5; border-top: 1px solid rgba(88,166,255,.15); }
+.story-box { background: rgba(24,34,58,.7); border: 1px solid rgba(88,166,255,.25); border-radius: 16px; padding: 18px 22px; margin: 22px 0; }
+.story-box h3 { margin: 10px 0 6px; color: #9cc4ff; font-size: 16px; }
+.story-box h3:first-child { margin-top: 0; }
+.dropcap::first-letter { font-size: 3.2em; float: left; line-height: .85; padding-right: 8px; color: #58a6ff; font-weight: 800; }
