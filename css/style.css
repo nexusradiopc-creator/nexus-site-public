@@ -582,3 +582,15 @@ a, button, .product-card, .hero-char { touch-action: manipulation; } /* убра
 .chapter-card .date small { display: inline-block; margin-left: 3px; font-size: 10px; }
 .ch-body { gap: 0; }
 @media (max-width: 560px) { .chapter-card .date { min-width: 0 !important; } }
+
+/* v45: span.date в карточках глав — компактная пилюля */
+span.date, .ch-body span.date {
+  display: inline-block !important;
+  width: auto !important; min-width: 0 !important;
+  align-self: flex-start;
+  background: rgba(79,209,255,.09); border: 1px solid rgba(79,209,255,.22);
+  color: var(--cyan); font-weight: 700; font-size: 11.5px;
+  padding: 3px 10px; border-radius: 999px; margin-bottom: 6px;
+}
+span.date small { font-size: 10px; color: var(--faint); margin-left: 3px; }
+.chapter-card { display: flex !important; flex-direction: row !important; }
