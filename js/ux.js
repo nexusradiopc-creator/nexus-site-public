@@ -22,17 +22,24 @@
 
   /* --- кнопка назад (если есть история внутри сайта) --- */
   const isArticle = !!document.querySelector('.post');
+  function goBack(e) {
+    e.preventDefault();
+    if (history.length > 1 && document.referrer.includes(location.hostname)) history.back();
+    else location.href = '../index.html#kb';
+  }
   if (isArticle) {
+    // плавающая слева (ПК)
     const back = document.createElement('a');
     back.className = 'back-btn back-float'; back.href = '#';
     back.innerHTML = '← Назад';
-    back.onclick = (e) => {
-      e.preventDefault();
-      if (history.length > 1 && document.referrer.includes(location.hostname)) history.back();
-      else location.href = '../index.html#kb';
-    };
+    back.onclick = goBack;
     document.querySelector('main').prepend(back);
   }
+  // все кнопки «назад» (в т.ч. внизу статьи)
+  document.querySelectorAll('[data-back]').forEach(el => el.addEventListener('click', goBack));
+
+  /* --- логотип всегда ведёт на главную --- */
+  document.querySelectorAll('.logo').forEach(a => a.addEventListener('click', () => { location.href = a.getAttribute('href'); }));
 
   /* --- поделиться (нативное меню) --- */
   const share = document.querySelector('.share-btn');
