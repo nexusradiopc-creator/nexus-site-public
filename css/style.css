@@ -643,3 +643,7 @@ span.date small { font-size: 10px; color: var(--faint); margin-left: 3px; }
 .contact-cta p { color: #aab8d4; margin: 0 0 16px; font-size: 14px; }
 .btn-cta.big { display: inline-block; font-size: 15px; padding: 12px 26px; }
 @media (max-width: 760px) { .social-grid { grid-template-columns: 1fr; } }
+
+/* v49: 3D-иконки соцсетей */
+.s-ico img { width: 64px; height: 64px; border-radius: 14px; display: block; box-shadow: 0 6px 20px rgba(0,0,0,.45); }
+.social-card { gap: 18px; }
