@@ -526,3 +526,17 @@ a, button, .product-card, .hero-char { touch-action: manipulation; } /* убра
   justify-content: center; text-align: center;
   padding: 11px 20px; font-size: 14px; border-radius: 12px;
 }
+
+/* v26: post-end-actions — одинаковый размер обеих кнопок */
+.post-end-actions .back-btn,
+.post-end-actions .share-btn {
+  flex: 0 0 auto;
+  width: 220px; box-sizing: border-box;
+  height: 46px; line-height: 1;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 14px; padding: 0; border-radius: 12px;
+}
+@media (max-width: 760px) {
+  .post-end-actions .back-btn,
+  .post-end-actions .share-btn { width: 100%; height: 48px; }
+}
