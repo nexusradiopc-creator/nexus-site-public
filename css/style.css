@@ -550,3 +550,12 @@ a, button, .product-card, .hero-char { touch-action: manipulation; } /* убра
 .story-box h3 { margin: 10px 0 6px; color: #9cc4ff; font-size: 16px; }
 .story-box h3:first-child { margin-top: 0; }
 .dropcap::first-letter { font-size: 3.2em; float: left; line-height: .85; padding-right: 8px; color: #58a6ff; font-weight: 800; }
+
+
+/* v38: конвейер агентов в карточках */
+.pipeline { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; background: rgba(10,16,32,.5); border: 1px solid rgba(88,166,255,.18); border-radius: 12px; padding: 10px 12px; margin-bottom: 4px; }
+.pl-step { background: rgba(88,166,255,.14); color: #a9ccff; font-size: 11px; padding: 3px 8px; border-radius: 20px; white-space: nowrap; }
+.pl-step.pl-final { background: rgba(63,185,80,.2); color: #56d364; }
+.pl-step.pl-warn { background: rgba(248,81,73,.16); color: #ff7b72; }
+.pl-arr { color: #5a6c94; font-size: 11px; }
+.p-tag { min-height: 15px; }
