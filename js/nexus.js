@@ -5,6 +5,24 @@
    Плавная кроссфейд-смена поз (двойной буфер).
    Мини-компаньон убран по решению Сергея.
    ================================================================ */
+/* ===== бургер-меню: работает на всех страницах, независимо от персонажа ===== */
+(function () {
+  const burger = document.getElementById('burger');
+  if (!burger) return;
+  burger.addEventListener('click', () => {
+    const m = document.querySelector('nav.menu');
+    if (!m) return;
+    const isOpen = m.style.display === 'flex';
+    m.style.display = isOpen ? 'none' : 'flex';
+    m.style.flexDirection = 'column';
+    m.style.position = 'absolute';
+    m.style.right = '18px'; m.style.top = '68px';
+    m.style.background = 'rgba(10,16,32,.97)';
+    m.style.border = '1px solid var(--card-brd)';
+    m.style.borderRadius = '16px'; m.style.padding = '10px';
+    m.style.boxShadow = '0 20px 50px rgba(0,0,0,.5)'; m.style.zIndex = '99';
+  });
+})();
 (function () {
   'use strict';
 
@@ -228,21 +246,6 @@
     }
     armSleep(isAsleep ? 300000 : 60000);
   }, 600);
-
-  /* бургер-меню */
-  const burger = document.getElementById('burger');
-  if (burger) burger.addEventListener('click', () => {
-    const m = document.querySelector('nav.menu');
-    const isOpen = m.style.display === 'flex';
-    m.style.display = isOpen ? 'none' : 'flex';
-    m.style.flexDirection = 'column';
-    m.style.position = 'absolute';
-    m.style.right = '18px'; m.style.top = '68px';
-    m.style.background = 'rgba(10,16,32,.97)';
-    m.style.border = '1px solid var(--card-brd)';
-    m.style.borderRadius = '16px'; m.style.padding = '10px';
-    m.style.boxShadow = '0 20px 50px rgba(0,0,0,.5)'; m.style.zIndex = '99';
-  });
 
   /* ---------- мобильная оптимизация (v18) ---------- */
   if (IS_TOUCH) {
