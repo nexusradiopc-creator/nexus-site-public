@@ -99,6 +99,30 @@
             </div>
             <button class="btn btn-primary" id="btn-login" onclick="doLogin()">Войти</button>
             <div class="cab-msg" id="msg-login"></div>
+            <p class="cab-hint" style="margin-top:16px"><a href="#" onclick="showForgot();return false" style="color:#7dd8ff">Забыли пароль?</a></p>
+          </div>
+
+          <!-- Восстановление пароля: шаг 1 — запрос на email -->
+          <div id="pane-forgot" style="display:none">
+            <div class="cab-field">
+              <label>Email</label>
+              <input class="cab-input" id="fo-email" type="email" placeholder="you@example.com" autocomplete="email">
+            </div>
+            <button class="btn btn-primary" id="btn-forgot" onclick="doForgot()">Отправить инструкцию</button>
+            <div class="cab-msg" id="msg-forgot"></div>
+            <p class="cab-hint"><a href="#" onclick="showTab('login');return false" style="color:#7dd8ff">← Назад ко входу</a></p>
+          </div>
+
+          <!-- Восстановление пароля: шаг 2 — новый пароль по токену из письма -->
+          <div id="pane-reset" style="display:none">
+            <h2 style="font-size:20px;margin:0 0 6px">Новый пароль</h2>
+            <p class="cab-hint" style="margin-top:0">Придумайте новый пароль — он заменит старый. Ссылка из письма действует 30 минут.</p>
+            <div class="cab-field">
+              <label>Новый пароль (мин. 6 символов)</label>
+              <input class="cab-input" id="rs-pass" type="password" placeholder="••••••••" autocomplete="new-password">
+            </div>
+            <button class="btn btn-primary" id="btn-reset" onclick="doReset()">Сохранить пароль</button>
+            <div class="cab-msg" id="msg-reset"></div>
           </div>
 
           <div id="pane-reg" style="display:none">
@@ -201,6 +225,39 @@ function showTab(t) {
   document.getElementById('tab-reg').classList.toggle('on', t === 'reg');
   document.getElementById('pane-login').style.display = t === 'login' ? '' : 'none';
   document.getElementById('pane-reg').style.display = t === 'reg' ? '' : 'none';
+  document.getElementById('pane-forgot').style.display = t === 'forgot' ? '' : 'none';
+  document.getElementById('pane-reset').style.display = t === 'reset' ? '' : 'none';
+}
+
+function showForgot() {
+  showTab('forgot');
+  document.getElementById('fo-email').value = document.getElementById('li-email').value.trim();
+}
+
+function doForgot() {
+  var email = document.getElementById('fo-email').value.trim();
+  if (!email) { setMsg('msg-forgot', 'Введите email', false); return; }
+  var btn = document.getElementById('btn-forgot'); btn.disabled = true;
+  api('/api/forgot', 'POST', { email: email })
+    .then(function (j) { setMsg('msg-forgot', j.message || 'Проверьте почту.', true); })
+    .catch(function (e) { setMsg('msg-forgot', e.message, false); })
+    .finally(function () { btn.disabled = false; });
+}
+
+function doReset() {
+  var pass = document.getElementById('rs-pass').value;
+  if (pass.length < 6) { setMsg('msg-reset', 'Пароль — минимум 6 символов', false); return; }
+  var params = new URLSearchParams(location.search);
+  var token = params.get('reset');
+  if (!token) { setMsg('msg-reset', 'Ссылка недействительна', false); return; }
+  var btn = document.getElementById('btn-reset'); btn.disabled = true;
+  api('/api/reset', 'POST', { token: token, password: pass })
+    .then(function (j) {
+      setMsg('msg-reset', j.message || 'Пароль сохранён. Войдите.', true);
+      setTimeout(function () { history.replaceState(null, '', location.pathname); showTab('login'); setMsg('msg-login', '', true); document.getElementById('li-pass').focus(); }, 1800);
+    })
+    .catch(function (e) { setMsg('msg-reset', e.message, false); })
+    .finally(function () { btn.disabled = false; });
 }
 
 function setMsg(id, text, ok) {
@@ -239,6 +296,7 @@ function doLogin() {
     .then(function (j) {
       localStorage.setItem(TOKEN_KEY, j.token);
       setMsg('msg-login', '', true);
+      resetIdle(); // таймер бездействия после успешного входа
       loadProfile();
     })
     .catch(function (e) { setMsg('msg-login', e.message, false); })
@@ -353,7 +411,44 @@ function doChangePass() {
 }
 
 document.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !document.getElementById('view-profile').style.display) doLogin(); });
-loadProfile();
+
+// ==== Безопасность: авторазлогин после 15 минут бездействия (требование Сергея) ====
+var IDLE_LIMIT_MS = 15 * 60 * 1000; // 15 минут
+var idleTimer = null;
+
+function idleLogout() {
+  localStorage.removeItem(TOKEN_KEY);
+  location.href = location.pathname + '?idle=1';
+}
+
+function resetIdle() {
+  if (!localStorage.getItem(TOKEN_KEY)) return; // таймер только для залогиненных
+  if (idleTimer) clearTimeout(idleTimer);
+  idleTimer = setTimeout(idleLogout, IDLE_LIMIT_MS);
+}
+
+['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'].forEach(function (ev) {
+  document.addEventListener(ev, resetIdle, { passive: true });
+});
+
+// ==== Инициализация ====
+(function init() {
+  var params = new URLSearchParams(location.search);
+  if (params.get('reset')) {
+    // пришли по ссылке восстановления пароля — показываем форму нового пароля
+    document.getElementById('view-auth').style.display = '';
+    document.getElementById('view-profile').style.display = 'none';
+    localStorage.removeItem(TOKEN_KEY);
+    showTab('reset');
+    return;
+  }
+  if (params.get('idle')) {
+    // разлогинен по бездействию — сообщение
+    setMsg('msg-login', 'Сессия завершена из-за бездействия. Войдите заново — это безопасность.', false);
+  }
+  if (localStorage.getItem(TOKEN_KEY)) resetIdle();
+  loadProfile();
+})();
 </script>
 </body>
 </html>
