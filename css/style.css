@@ -961,3 +961,19 @@ a.btn * , a.btn-cta * { color: inherit; }
 
 /* кнопка поиска в шапке не должна разрывать «Ctrl K» на две строки */
 .search-trigger, .search-trigger kbd { white-space: nowrap; }
+
+/* === МОБИЛЬНАЯ ДОСТУПНОСТЬ (проверка 12.09.2026): удобные тап-зоны и читаемый мелкий текст === */
+@media (max-width: 760px) {
+  /* навигация: крошки и переходы между статьями/рассказами — не меньше 44px по высоте */
+  .crumbs a { min-height: 44px; display: inline-flex; align-items: center; padding: 6px 8px; }
+  .post-nav { flex-wrap: wrap; }
+  .post-nav a { min-height: 44px; display: inline-flex; align-items: center; padding: 6px 12px; border-radius: 10px; }
+  .back-btn { min-height: 44px; }
+  /* кабинет: вкладки Вход/Регистрация, ссылки и кнопки */
+  .cab-tab { min-height: 44px; }
+  #cab-conn-retry, .cab-retry, .cab-forgot { min-height: 44px; display: inline-flex; align-items: center; padding: 6px 8px; }
+  /* служебные подписи этапов — читаемее */
+  .pl-step { font-size: 12.5px; }
+  .search-results .r-agent { font-size: 12px; }
+}
+@media (max-width: 760px) { .cab-hint a { min-height: 44px; display: inline-flex; align-items: center; } }
