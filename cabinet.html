@@ -2,6 +2,18 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
+<script>
+// Забираем токен восстановления в память до загрузки ресурсов и других скриптов.
+var resetToken = (function () {
+  var url = new URL(location.href);
+  var token = url.searchParams.get('reset');
+  if (url.searchParams.has('reset')) {
+    url.searchParams.delete('reset');
+    history.replaceState(history.state, '', url.pathname + url.search + url.hash);
+  }
+  return token;
+})();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Личный кабинет — Nexus AI</title>
 <meta name="description" content="Личный кабинет Nexus AI: вход, баланс, статистика токенов, привязка Telegram.">
@@ -99,6 +111,12 @@
           </div>
 
           <div id="pane-login">
+            <div class="cab-step" id="registration-password" style="display:none;margin-bottom:16px" role="status">
+              <b>Аккаунт создан</b>
+              <p>Сохраните пароль — больше он не будет показан.</p>
+              <code id="registration-password-value" style="white-space:pre-wrap;overflow-wrap:anywhere"></code>
+              <div style="margin-top:12px"><button class="btn btn-ghost" onclick="clearRegistrationPassword()">Я сохранил пароль</button></div>
+            </div>
             <div class="cab-field">
               <label>Email</label>
               <input class="cab-input" id="li-email" type="email" placeholder="you@example.com" autocomplete="email">
@@ -147,7 +165,7 @@
             </div>
             <button class="btn btn-primary" id="btn-reg" onclick="doRegister()">Зарегистрироваться</button>
             <div class="cab-msg" id="msg-reg"></div>
-            <p class="cab-hint">После регистрации логин и пароль придут на вашу почту. Пароль можно сменить в кабинете.</p>
+            <p class="cab-hint">После регистрации сохраните пароль, показанный на экране. Пароль можно сменить в кабинете.</p>
             <div class="cab-step" style="margin-top:12px;font-size:15px;line-height:1.6">
               <b>Что будет дальше (3 шага):</b>
               <div style="margin-top:6px">1. Откроете помощника из кабинета — Telegram привяжется сам.</div>
@@ -225,7 +243,7 @@
           <div style="display:flex;flex-direction:column;gap:12px;margin-top:12px;font-size:16px;line-height:1.65">
             <div class="cab-step">
               <b>1️⃣ Зарегистрируйтесь</b>
-              <div>Укажите имя и e-mail — пароль покажется на экране и придёт письмом.
+              <div>Укажите имя и e-mail — пароль покажется на экране один раз, сохраните его.
                 Сразу начислим небольшой бонус, чтобы вы проверили, как помощник отвечает.</div>
             </div>
 
@@ -327,8 +345,11 @@
 // Адрес кабинета-бэкенда. Постоянный домен через Tailscale Funnel.
 var API_BASE = 'https://nexus.tailf3352f.ts.net';
 var TOKEN_KEY = 'nexus_cab_token';
+var ACTIVITY_KEY = 'nexus_cab_last_activity';
+var sessionVersion = 0;
 
 function showTab(t) {
+  if (t !== 'login') clearRegistrationPassword();
   document.getElementById('tab-login').classList.toggle('on', t === 'login');
   document.getElementById('tab-reg').classList.toggle('on', t === 'reg');
   document.getElementById('pane-login').style.display = t === 'login' ? '' : 'none';
@@ -355,14 +376,15 @@ function doForgot() {
 function doReset() {
   var pass = document.getElementById('rs-pass').value;
   if (pass.length < 6) { setMsg('msg-reset', 'Пароль — минимум 6 символов', false); return; }
-  var params = new URLSearchParams(location.search);
-  var token = params.get('reset');
+  var token = resetToken;
   if (!token) { setMsg('msg-reset', 'Ссылка недействительна', false); return; }
   var btn = document.getElementById('btn-reset'); btn.disabled = true;
   api('/api/reset', 'POST', { token: token, password: pass })
     .then(function (j) {
+      resetToken = null;
+      document.getElementById('rs-pass').value = '';
       setMsg('msg-reset', j.message || 'Пароль сохранён. Войдите.', true);
-      setTimeout(function () { history.replaceState(null, '', location.pathname); showTab('login'); setMsg('msg-login', '', true); document.getElementById('li-pass').focus(); }, 1800);
+      setTimeout(function () { showTab('login'); setMsg('msg-login', '', true); document.getElementById('li-pass').focus(); }, 1800);
     })
     .catch(function (e) { setMsg('msg-reset', e.message, false); })
     .finally(function () { btn.disabled = false; });
@@ -371,40 +393,70 @@ function doReset() {
 function setMsg(id, text, ok) {
   var el = document.getElementById(id);
   el.className = 'cab-msg ' + (ok ? 'ok' : 'err');
-  el.textContent = text;
+  el.textContent = displayText(text, '');
   if (text) el.style.display = 'block'; else el.style.display = 'none';
 }
 
 function api(path, method, body, token) {
+  if (token && (!checkSession() || token !== localStorage.getItem(TOKEN_KEY))) {
+    return Promise.reject(new Error('Войдите заново'));
+  }
   var opts = { method: method || 'GET', headers: {} };
   if (body) { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(body); }
   if (token) opts.headers['Authorization'] = 'Bearer ' + token;
   return fetch(API_BASE + path, opts).then(function (r) {
     return r.json().then(function (j) {
-      if (!r.ok) throw new Error((j.error && (j.error.message || j.detail)) || ('Ошибка ' + r.status));
+      j = record(j);
+      if (!r.ok) {
+        var error = new Error(displayText(record(j.error).message, displayText(j.detail, 'Ошибка ' + r.status)));
+        error.status = r.status;
+        throw error;
+      }
       return j;
     });
   });
 }
 
+function record(value) {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+}
+function displayText(value, fallback) {
+  if (typeof value === 'string' && value) return value;
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value);
+  return fallback === undefined ? '—' : fallback;
+}
+function validNumber(value) {
+  return (typeof value === 'number' || (typeof value === 'string' && value.trim() !== '')) && Number.isFinite(Number(value));
+}
 function fmtMoney(v) {
-  if (v === null || v === undefined) return '—';
+  if (!validNumber(v)) return '—';
   var s = Number(v).toFixed(6).replace(/0+$/, '').replace(/\.$/, '');
   return '$' + s;
 }
-function fmtNum(v) { return v === null || v === undefined ? '—' : Number(v).toLocaleString('ru-RU'); }
-function fmtDate(d) { if (!d) return ''; return String(d).slice(0, 16).replace('T', ' '); }
+function fmtNum(v) { return validNumber(v) ? Number(v).toLocaleString('ru-RU') : '—'; }
+function fmtDate(d) { return typeof d === 'string' && d ? d.slice(0, 16).replace('T', ' ') : '—'; }
+
+function clearRegistrationPassword() {
+  document.getElementById('registration-password-value').textContent = '';
+  document.getElementById('registration-password').style.display = 'none';
+}
 
 function doLogin() {
   var email = document.getElementById('li-email').value.trim();
   var pass = document.getElementById('li-pass').value;
   if (!email || !pass) { setMsg('msg-login', 'Введите email и пароль', false); return; }
   var btn = document.getElementById('btn-login'); btn.disabled = true;
+  var version = sessionVersion;
   api('/api/login', 'POST', { email: email, password: pass })
     .then(function (j) {
+      if (version !== sessionVersion) return;
+      if (typeof j.token !== 'string' || !j.token.trim()) throw new Error('Не удалось войти. Попробуйте ещё раз.');
+      localStorage.setItem(ACTIVITY_KEY, String(Date.now()));
       localStorage.setItem(TOKEN_KEY, j.token);
+      document.getElementById('li-pass').value = '';
+      clearRegistrationPassword();
       setMsg('msg-login', '', true);
-      resetIdle(); // таймер бездействия после успешного входа
+      checkSession();
       loadProfile();
     })
     .catch(function (e) { setMsg('msg-login', e.message, false); })
@@ -417,14 +469,19 @@ function doRegister() {
   var email = document.getElementById('rg-email').value.trim();
   if (!name || !email) { setMsg('msg-reg', 'Укажите имя и email', false); return; }
   var btn = document.getElementById('btn-reg'); btn.disabled = true;
+  clearRegistrationPassword();
   api('/api/register', 'POST', { name: name, surname: surname, email: email })
     .then(function (j) {
-      if (j.password) {
-        // Пароль показываем сразу — регистрация не зависит от почты
-        setMsg('msg-reg', '✅ Аккаунт создан! Ваш пароль: ' + j.password + ' — сохраните его. Сейчас можно войти (данные уже подставлены).', true);
+      if (typeof j.password === 'string' && j.password) {
+        // Единственный показ: только текст в отдельном блоке, без хранения и автоподстановки.
+        setMsg('msg-reg', '', true);
+        setMsg('msg-login', '', true);
         document.getElementById('li-email').value = email;
-        document.getElementById('li-pass').value = j.password;
+        document.getElementById('li-pass').value = '';
         showTab('login');
+        document.getElementById('registration-password-value').textContent = j.password;
+        document.getElementById('registration-password').style.display = '';
+        delete j.password;
       } else {
         setMsg('msg-reg', j.message || 'Аккаунт создан.', true);
       }
@@ -433,132 +490,264 @@ function doRegister() {
     .finally(function () { btn.disabled = false; });
 }
 
-function doLogout() { localStorage.removeItem(TOKEN_KEY); location.reload(); }
+function clearSessionView() {
+  sessionVersion++;
+  clearTimeout(idleTimer);
+  clearRegistrationPassword();
+  ['li-pass', 'rs-pass', 'pf-old', 'pf-new'].forEach(function (id) { document.getElementById(id).value = ''; });
+  ['pf-name', 'pf-email', 'pf-status', 'pf-balance', 'pf-today', 'pf-7d', 'pf-30d', 'pf-tg-status', 'pf-days', 'pf-req', 'pf-bots', 'pf-pay'].forEach(function (id) {
+    document.getElementById(id).replaceChildren();
+  });
+  setMsg('msg-pass', '', true);
+  document.getElementById('view-auth').style.display = '';
+  document.getElementById('view-profile').style.display = 'none';
+  showTab('login');
+}
+
+function doLogout(idle) {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(ACTIVITY_KEY);
+  clearSessionView();
+  setMsg('msg-login', idle === true ? 'Сессия завершена из-за бездействия. Войдите заново — это безопасность.' : '', false);
+}
 
 function loadProfile() {
   var token = localStorage.getItem(TOKEN_KEY);
   if (!token) { document.getElementById('view-auth').style.display = ''; document.getElementById('view-profile').style.display = 'none'; return; }
+  if (!checkSession()) return;
+  var version = sessionVersion;
   api('/api/profile', 'GET', null, token)
-    .then(renderProfile)
+    .then(function (p) {
+      if (version === sessionVersion && token === localStorage.getItem(TOKEN_KEY) && checkSession()) renderProfile(p);
+    })
     .catch(function (e) {
-      // сессия протухла — чистим и показываем вход
-      localStorage.removeItem(TOKEN_KEY);
+      if (version !== sessionVersion || token !== localStorage.getItem(TOKEN_KEY)) return;
+      // Сессию очищаем при отказе в авторизации; сетевая ошибка не означает истечение токена.
+      if (e.status === 401 || e.status === 403) doLogout();
       document.getElementById('view-auth').style.display = '';
       document.getElementById('view-profile').style.display = 'none';
       setMsg('msg-login', e.message === 'Сессия недействительна или истекла' ? 'Войдите заново' : e.message, false);
     });
 }
 
+// Все данные API выводим как текст. Разметка создаётся только DOM-методами.
+function element(tag, className, text) {
+  var el = document.createElement(tag);
+  if (className) el.className = className;
+  if (text !== undefined) el.textContent = displayText(text);
+  return el;
+}
+
+function renderTable(id, headers, rows, emptyText) {
+  var target = document.getElementById(id);
+  target.replaceChildren();
+  if (!rows.length) { target.append(element('div', 'cab-empty', emptyText)); return; }
+  var table = element('table', 'cab-table');
+  var head = element('tr');
+  headers.forEach(function (label) { head.append(element('th', '', label)); });
+  table.append(head);
+  rows.forEach(function (cells) {
+    var row = element('tr');
+    cells.forEach(function (value) { row.append(element('td', '', value)); });
+    table.append(row);
+  });
+  target.append(table);
+}
+
+function telegramURL(username, linkToken) {
+  if (typeof username !== 'string' || !/^[A-Za-z0-9_]{4,64}$/.test(username) ||
+      typeof linkToken !== 'string' || !linkToken.trim()) return null;
+  try {
+    var url = new URL(username, 'https://t.me/');
+    url.search = new URLSearchParams({ start: 'link_' + linkToken }).toString();
+    if (url.protocol !== 'https:' || url.host !== 't.me' || url.username || url.password) return null;
+    return url.href;
+  } catch (e) { return null; }
+}
+
 function renderProfile(p) {
+  p = record(p);
   document.getElementById('view-auth').style.display = 'none';
   document.getElementById('view-profile').style.display = '';
-  var u = p.user || {};
-  document.getElementById('pf-name').textContent = u.name || '';
-  document.getElementById('pf-email').textContent = u.email || '';
+  var u = record(p.user);
+  document.getElementById('pf-name').textContent = displayText(u.name, '');
+  document.getElementById('pf-email').textContent = displayText(u.email, '');
   var st = document.getElementById('pf-status');
-  st.textContent = p.status || 'active';
+  st.textContent = p.status === 'blocked' ? 'Заблокирован' : p.status === 'active' ? 'Активен' : 'Статус уточняется';
   st.className = 'cab-badge' + (p.status === 'blocked' ? ' blocked' : '');
 
   document.getElementById('pf-balance').textContent = fmtMoney(p.balance_usd);
-  var us = p.usage || {};
-  document.getElementById('pf-today').textContent = fmtMoney(us.today && us.today.cost_usd);
-  document.getElementById('pf-7d').textContent = fmtMoney(us.last7d && us.last7d.cost_usd);
-  document.getElementById('pf-30d').textContent = fmtMoney(us.last30d && us.last30d.cost_usd);
+  var us = record(p.usage);
+  document.getElementById('pf-today').textContent = fmtMoney(record(us.today).cost_usd);
+  document.getElementById('pf-7d').textContent = fmtMoney(record(us.last7d).cost_usd);
+  document.getElementById('pf-30d').textContent = fmtMoney(record(us.last30d).cost_usd);
 
-  var days = p.by_day || [];
-  if (days.length) {
-    var dh = '<table class="cab-table"><tr><th>Дата</th><th>Стоимость</th></tr>';
-    days.slice(-14).reverse().forEach(function (d) {
-      dh += '<tr><td>' + d.day + '</td><td>' + fmtMoney(d.cost_usd) + '</td></tr>';
-    });
-    dh += '</table>';
-    document.getElementById('pf-days').innerHTML = dh;
-  } else {
-    document.getElementById('pf-days').innerHTML = '<div class="cab-empty">Пока нет данных</div>';
-  }
+  var days = Array.isArray(p.by_day) ? p.by_day : [];
+  renderTable('pf-days', ['Дата', 'Стоимость'], days.slice(-14).reverse().map(function (value) {
+    var d = record(value);
+    return [displayText(d.day), fmtMoney(d.cost_usd)];
+  }), 'Пока нет данных');
 
-  var req = p.last_requests || [];
-  if (req.length) {
-    var rh = '<table class="cab-table"><tr><th>Когда</th><th>Продукт</th><th>Стоимость</th></tr>';
-    req.slice(0, 10).forEach(function (r) {
-      rh += '<tr><td>' + fmtDate(r.at) + '</td><td>' + (r.product || '—') + '</td><td>' + fmtMoney(r.cost_usd) + '</td></tr>';
-    });
-    rh += '</table>';
-    document.getElementById('pf-req').innerHTML = rh;
-  } else {
-    document.getElementById('pf-req').innerHTML = '<div class="cab-empty">Пока нет запросов</div>';
-  }
+  var req = Array.isArray(p.last_requests) ? p.last_requests : [];
+  renderTable('pf-req', ['Когда', 'Продукт', 'Стоимость'], req.slice(0, 10).map(function (value) {
+    var r = record(value);
+    return [fmtDate(r.at), displayText(r.product), fmtMoney(r.cost_usd)];
+  }), 'Пока нет запросов');
 
   var tgStatus = document.getElementById('pf-tg-status');
   if (tgStatus) {
-    tgStatus.textContent = u.tg_id
-      ? 'Статус: Telegram привязан (' + u.tg_id + ') — расходы списываются с вашего личного счёта.'
+    var tgId = displayText(u.tg_id, '');
+    tgStatus.textContent = tgId
+      ? 'Статус: Telegram привязан (' + tgId + ') — расходы списываются с вашего личного счёта.'
       : 'Статус: Telegram пока не привязан — нажмите кнопку помощника ниже, привяжется сам.';
   }
 
-  // Боты: deep-link с кодом привязки (бот сам привяжет Telegram к счёту)
-  var bots = p.bots || [];
+  // Боты: разрешены только HTTPS-ссылки на t.me с проверенным именем бота.
+  var bots = Array.isArray(p.bots) ? p.bots : [];
   var bx = document.getElementById('pf-bots');
-  if (bots.length && p.link_token) {
-    bx.innerHTML = bots.map(function (b) {
-      var url = 'https://t.me/' + b.username + '?start=link_' + p.link_token;
-      return '<a class="btn btn-primary" style="text-decoration:none" target="_blank" rel="noopener" href="' + url + '">' + (b.title || b.username) + '</a>';
-    }).join('');
-  } else {
-    bx.innerHTML = '<div class="cab-empty">Пока нет доступных ботов</div>';
-  }
+  bx.replaceChildren();
+  bots.forEach(function (value) {
+    var b = record(value);
+    var url = telegramURL(b.username, p.link_token);
+    if (!url) {
+      bx.append(element('div', 'cab-empty', 'Ссылка на помощника пока недоступна'));
+      return;
+    }
+    var link = element('a', 'btn btn-primary', displayText(b.title, b.username));
+    link.style.textDecoration = 'none';
+    link.target = '_blank';
+    link.rel = 'noopener';
+    link.href = url;
+    bx.append(link);
+  });
+  if (!bots.length) bx.append(element('div', 'cab-empty', 'Пока нет доступных ботов'));
 
-  // Пополнение счёта: карта → назначение платежа → квитанция боту (пошагово, крупно)
-  var pay = p.payment || {};
+  // Пополнение: прежние шаги и стили, значения платёжных полей — только textContent.
+  var pay = record(p.payment);
   var px = document.getElementById('pf-pay');
-  if (pay.card) {
-    px.innerHTML =
-      '<div style="font-size:16px;line-height:1.7">' +
-        '<div><b>1.</b> Переведите нужную сумму на карту:</div>' +
-        '<div class="cab-stat"><span>Номер карты</span><b>' + pay.card + '</b></div>' +
-        (pay.holder ? '<div class="cab-stat"><span>Получатель</span><b>' + pay.holder + '</b></div>' : '') +
-        '<div style="margin-top:14px"><b>2.</b> В назначении платежа обязательно укажите:</div>' +
-        '<div class="cab-step" style="margin-top:6px"><b>«' + (pay.purpose || 'Возврат долга') + '»</b></div>' +
-        '<div style="margin-top:14px"><b>3.</b> Пришлите квитанцию боту в Telegram — скриншот или фото чека.</div>' +
-        '<div class="cab-hint" style="margin-top:6px">Он передаст её на проверку, и счёт пополнится — баланс увидите здесь же.</div>' +
-      '</div>' +
-      (pay.note ? '<p class="cab-hint" style="margin-top:12px">' + pay.note + '</p>' : '');
+  px.replaceChildren();
+  var card = displayText(pay.card, '');
+  if (card) {
+    var wrap = element('div');
+    wrap.style.fontSize = '16px';
+    wrap.style.lineHeight = '1.7';
+    function step(number, text, margin) {
+      var row = element('div');
+      if (margin) row.style.marginTop = '14px';
+      row.append(element('b', '', number + '.'), document.createTextNode(' ' + text));
+      wrap.append(row);
+    }
+    function stat(label, value) {
+      var row = element('div', 'cab-stat');
+      row.append(element('span', '', label), element('b', '', value));
+      wrap.append(row);
+    }
+    step(1, 'Переведите нужную сумму на карту:', false);
+    stat('Номер карты', card);
+    var holder = displayText(pay.holder, '');
+    if (holder) stat('Получатель', holder);
+    step(2, 'В назначении платежа обязательно укажите:', true);
+    var purpose = element('div', 'cab-step');
+    purpose.style.marginTop = '6px';
+    purpose.append(element('b', '', '«' + displayText(pay.purpose, 'Возврат долга') + '»'));
+    wrap.append(purpose);
+    step(3, 'Пришлите квитанцию боту в Telegram — скриншот или фото чека.', true);
+    var hint = element('div', 'cab-hint', 'Он передаст её на проверку, и счёт пополнится — баланс увидите здесь же.');
+    hint.style.marginTop = '6px';
+    wrap.append(hint);
+    px.append(wrap);
+    var note = displayText(pay.note, '');
+    if (note) {
+      var noteEl = element('p', 'cab-hint', note);
+      noteEl.style.marginTop = '12px';
+      px.append(noteEl);
+    }
   } else {
-    px.innerHTML = '<div class="cab-empty">Реквизиты уточняются — напишите нам в Telegram.</div>';
+    px.append(element('div', 'cab-empty', 'Реквизиты уточняются — напишите нам в Telegram.'));
   }
 }
 
 function doChangePass() {
+  if (!checkSession()) return;
+  var version = sessionVersion;
   var oldP = document.getElementById('pf-old').value;
   var newP = document.getElementById('pf-new').value;
   if (!oldP || newP.length < 6) { setMsg('msg-pass', 'Введите старый пароль и новый (мин. 6 символов)', false); return; }
   api('/api/password', 'POST', { old_password: oldP, new_password: newP }, localStorage.getItem(TOKEN_KEY))
     .then(function (j) {
+      if (version !== sessionVersion || !checkSession()) return;
+      document.getElementById('pf-old').value = '';
+      document.getElementById('pf-new').value = '';
       setMsg('msg-pass', j.message || 'Пароль изменён. Войдите заново.', true);
-      setTimeout(doLogout, 1500);
+      setTimeout(function () { if (version === sessionVersion) doLogout(); }, 1500);
     })
     .catch(function (e) { setMsg('msg-pass', e.message, false); });
 }
 
-document.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !document.getElementById('view-profile').style.display) doLogin(); });
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Enter') checkSession();
+  if (e.key === 'Enter' && document.getElementById('view-auth').style.display !== 'none' &&
+      document.getElementById('pane-login').style.display !== 'none' &&
+      (e.target.id === 'li-email' || e.target.id === 'li-pass') && !document.getElementById('btn-login').disabled) {
+    e.preventDefault();
+    doLogin();
+  }
+});
 
-// ==== Безопасность: авторазлогин после 15 минут бездействия (требование Сергея) ====
+// Время активности общее для вкладок и сохраняется после их закрытия.
+// До продления сессии проверяем срок: загрузка/возврат не дают просроченному токену ещё 15 минут.
+// Таймер лишь будит проверку; отзыв токена и сроки сессии на сервере должны обеспечиваться API.
 var IDLE_LIMIT_MS = 15 * 60 * 1000; // 15 минут
 var idleTimer = null;
 
-function idleLogout() {
-  localStorage.removeItem(TOKEN_KEY);
-  location.href = location.pathname + '?idle=1';
+function checkSession() {
+  clearTimeout(idleTimer);
+  if (!localStorage.getItem(TOKEN_KEY)) {
+    if (document.getElementById('view-profile').style.display !== 'none') clearSessionView();
+    return false;
+  }
+  var last = Number(localStorage.getItem(ACTIVITY_KEY));
+  var now = Date.now();
+  // Старые сессии без отметки времени и повреждённые значения требуют нового входа.
+  if (!Number.isFinite(last) || last <= 0 || last > now || now - last >= IDLE_LIMIT_MS) {
+    doLogout(true);
+    return false;
+  }
+  idleTimer = setTimeout(checkSession, IDLE_LIMIT_MS - (now - last));
+  return true;
 }
 
 function resetIdle() {
-  if (!localStorage.getItem(TOKEN_KEY)) return; // таймер только для залогиненных
-  if (idleTimer) clearTimeout(idleTimer);
-  idleTimer = setTimeout(idleLogout, IDLE_LIMIT_MS);
+  if (!checkSession() || document.visibilityState !== 'visible') return;
+  var now = Date.now();
+  // Не пишем в localStorage на каждом движении мыши; погрешность не больше секунды.
+  if (now - Number(localStorage.getItem(ACTIVITY_KEY)) >= 1000) {
+    localStorage.setItem(ACTIVITY_KEY, String(now));
+    checkSession();
+  }
 }
 
 ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'].forEach(function (ev) {
   document.addEventListener(ev, resetIdle, { passive: true });
+});
+
+document.addEventListener('visibilitychange', function () {
+  if (document.visibilityState === 'visible') checkSession();
+});
+window.addEventListener('pageshow', function () { checkSession(); });
+window.addEventListener('pagehide', function () {
+  clearRegistrationPassword();
+  document.getElementById('li-pass').value = '';
+});
+window.addEventListener('storage', function (event) {
+  if (event.storageArea !== localStorage) return;
+  if (event.key === TOKEN_KEY || event.key === null) {
+    // Очищаем и скрытые данные прежнего профиля, отменяем отрисовку запоздавших ответов.
+    clearSessionView();
+    if (checkSession()) loadProfile();
+  } else if (event.key === ACTIVITY_KEY) {
+    checkSession();
+  }
 });
 
 // ==== Инициализация ====
@@ -568,11 +757,9 @@ function resetIdle() {
     // пришли по ссылке «Зарегистрироваться» с главной страницы сайта
     showTab('reg');
   }
-  if (params.get('reset')) {
+  if (resetToken !== null) {
     // пришли по ссылке восстановления пароля — показываем форму нового пароля
-    document.getElementById('view-auth').style.display = '';
-    document.getElementById('view-profile').style.display = 'none';
-    localStorage.removeItem(TOKEN_KEY);
+    doLogout();
     showTab('reset');
     return;
   }
@@ -580,7 +767,7 @@ function resetIdle() {
     // разлогинен по бездействию — сообщение
     setMsg('msg-login', 'Сессия завершена из-за бездействия. Войдите заново — это безопасность.', false);
   }
-  if (localStorage.getItem(TOKEN_KEY)) resetIdle();
+  if (localStorage.getItem(TOKEN_KEY) && !checkSession()) return;
   loadProfile();
 })();
 </script>
