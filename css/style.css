@@ -930,3 +930,25 @@ a.content-card:active { transform: translateY(1px); box-shadow: var(--content-ca
 
 /* отступ после секции «Что я делаю для людей», чтобы не слипалось со следующей */
 #dlya-lyudey { margin-bottom: 48px; }
+
+/* === ИСПРАВЛЕНО 12.09.2026: ссылки-карточки и иконки получали дефолтный СИНИЙ цвет браузера
+   (rgb(0,0,238)) и были не видны на тёмном фоне. Теперь цвет как у обычного текста. === */
+a.card,
+a.card:visited,
+a.content-card,
+a.content-card:visited,
+a.card * ,
+.content-card * {
+  color: var(--text);
+  text-decoration: none;
+}
+a.card:hover,
+a.content-card:hover { color: var(--text); }
+.foot-social a,
+.foot-social a:visited { color: var(--text); }
+.foot-bottom span { color: var(--dim); }
+.p-links a, .p-links a:visited { color: var(--text); }
+
+/* пункты меню не переносим на вторую строку */
+nav.menu a, .menu a { white-space: nowrap; }
+header nav a { white-space: nowrap; }
