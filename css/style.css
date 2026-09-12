@@ -927,3 +927,6 @@ a.content-card:active { transform: translateY(1px); box-shadow: var(--content-ca
 /* три карточки в ряд на широком экране */
 #dlya-lyudey .card-grid { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
 @media (max-width: 760px) { #dlya-lyudey .card-grid { grid-template-columns: 1fr; } }
+
+/* отступ после секции «Что я делаю для людей», чтобы не слипалось со следующей */
+#dlya-lyudey { margin-bottom: 48px; }
