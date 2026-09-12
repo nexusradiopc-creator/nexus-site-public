@@ -344,6 +344,13 @@ var resetToken = (function () {
 <script>
 // Адрес кабинета-бэкенда. Постоянный домен через Tailscale Funnel.
 var API_BASE = 'https://nexus.tailf3352f.ts.net';
+/* Хранилище с защитой: в инкогнито/при запрете cookies localStorage может бросать
+   исключение — тогда работаем через резерв в памяти, чтобы кабинет не ломался. */
+var MEM_STORE = {};
+function storeGet(k) { try { return localStorage.getItem(k); } catch (e) { return Object.prototype.hasOwnProperty.call(MEM_STORE, k) ? MEM_STORE[k] : null; } }
+function storeSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { MEM_STORE[k] = v; } }
+function storeDel(k) { try { localStorage.removeItem(k); } catch (e) { delete MEM_STORE[k]; } }
+
 var TOKEN_KEY = 'nexus_cab_token';
 var ACTIVITY_KEY = 'nexus_cab_last_activity';
 var sessionVersion = 0;
@@ -398,7 +405,7 @@ function setMsg(id, text, ok) {
 }
 
 function api(path, method, body, token) {
-  if (token && (!checkSession() || token !== localStorage.getItem(TOKEN_KEY))) {
+  if (token && (!checkSession() || token !== storeGet(TOKEN_KEY))) {
     return Promise.reject(new Error('Войдите заново'));
   }
   var opts = { method: method || 'GET', headers: {} };
@@ -458,8 +465,8 @@ function doLogin() {
     .then(function (j) {
       if (version !== sessionVersion) return;
       if (typeof j.token !== 'string' || !j.token.trim()) throw new Error('Не удалось войти. Попробуйте ещё раз.');
-      localStorage.setItem(ACTIVITY_KEY, String(Date.now()));
-      localStorage.setItem(TOKEN_KEY, j.token);
+      storeSet(ACTIVITY_KEY, String(Date.now()));
+      storeSet(TOKEN_KEY, j.token);
       document.getElementById('li-pass').value = '';
       clearRegistrationPassword();
       setMsg('msg-login', '', true);
@@ -512,23 +519,23 @@ function clearSessionView() {
 }
 
 function doLogout(idle) {
-  localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(ACTIVITY_KEY);
+  storeDel(TOKEN_KEY);
+  storeDel(ACTIVITY_KEY);
   clearSessionView();
   setMsg('msg-login', idle === true ? 'Сессия завершена из-за бездействия. Войдите заново — это безопасность.' : '', false);
 }
 
 function loadProfile() {
-  var token = localStorage.getItem(TOKEN_KEY);
+  var token = storeGet(TOKEN_KEY);
   if (!token) { document.getElementById('view-auth').style.display = ''; document.getElementById('view-profile').style.display = 'none'; return; }
   if (!checkSession()) return;
   var version = sessionVersion;
   api('/api/profile', 'GET', null, token)
     .then(function (p) {
-      if (version === sessionVersion && token === localStorage.getItem(TOKEN_KEY) && checkSession()) renderProfile(p);
+      if (version === sessionVersion && token === storeGet(TOKEN_KEY) && checkSession()) renderProfile(p);
     })
     .catch(function (e) {
-      if (version !== sessionVersion || token !== localStorage.getItem(TOKEN_KEY)) return;
+      if (version !== sessionVersion || token !== storeGet(TOKEN_KEY)) return;
       // Сессию очищаем при отказе в авторизации; сетевая ошибка не означает истечение токена.
       if (e.status === 401 || e.status === 403) doLogout();
       document.getElementById('view-auth').style.display = '';
@@ -680,7 +687,7 @@ function doChangePass() {
   var oldP = document.getElementById('pf-old').value;
   var newP = document.getElementById('pf-new').value;
   if (!oldP || newP.length < 6) { setMsg('msg-pass', 'Введите старый пароль и новый (мин. 6 символов)', false); return; }
-  api('/api/password', 'POST', { old_password: oldP, new_password: newP }, localStorage.getItem(TOKEN_KEY))
+  api('/api/password', 'POST', { old_password: oldP, new_password: newP }, storeGet(TOKEN_KEY))
     .then(function (j) {
       if (version !== sessionVersion || !checkSession()) return;
       document.getElementById('pf-old').value = '';
@@ -709,11 +716,11 @@ var idleTimer = null;
 
 function checkSession() {
   clearTimeout(idleTimer);
-  if (!localStorage.getItem(TOKEN_KEY)) {
+  if (!storeGet(TOKEN_KEY)) {
     if (document.getElementById('view-profile').style.display !== 'none') clearSessionView();
     return false;
   }
-  var last = Number(localStorage.getItem(ACTIVITY_KEY));
+  var last = Number(storeGet(ACTIVITY_KEY));
   var now = Date.now();
   // Старые сессии без отметки времени и повреждённые значения требуют нового входа.
   if (!Number.isFinite(last) || last <= 0 || last > now || now - last >= IDLE_LIMIT_MS) {
@@ -728,8 +735,8 @@ function resetIdle() {
   if (!checkSession() || document.visibilityState !== 'visible') return;
   var now = Date.now();
   // Не пишем в localStorage на каждом движении мыши; погрешность не больше секунды.
-  if (now - Number(localStorage.getItem(ACTIVITY_KEY)) >= 1000) {
-    localStorage.setItem(ACTIVITY_KEY, String(now));
+  if (now - Number(storeGet(ACTIVITY_KEY)) >= 1000) {
+    storeSet(ACTIVITY_KEY, String(now));
     checkSession();
   }
 }
@@ -760,7 +767,7 @@ window.addEventListener('storage', function (event) {
 // ==== Инициализация ====
 (function init() {
   var params = new URLSearchParams(location.search);
-  if (params.get('tab') === 'reg' && !localStorage.getItem(TOKEN_KEY)) {
+  if (params.get('tab') === 'reg' && !storeGet(TOKEN_KEY)) {
     // пришли по ссылке «Зарегистрироваться» с главной страницы сайта
     showTab('reg');
   }
@@ -774,8 +781,22 @@ window.addEventListener('storage', function (event) {
     // разлогинен по бездействию — сообщение
     setMsg('msg-login', 'Сессия завершена из-за бездействия. Войдите заново — это безопасность.', false);
   }
-  if (localStorage.getItem(TOKEN_KEY) && !checkSession()) return;
+  if (storeGet(TOKEN_KEY) && !checkSession()) return;
   loadProfile();
+})();
+</script>
+<div id="cab-conn" style="text-align:center;font-size:13px;color:#8fa3c8;padding:14px 0"></div>
+<script>
+(function () {
+  var el = document.getElementById('cab-conn');
+  if (!el) return;
+  fetch(API_BASE + '/api/health').then(function (r) {
+    el.textContent = r.ok ? 'Связь с сервером: есть ✅' : 'Связь с сервером: ошибка ' + r.status;
+    el.style.color = r.ok ? '#7fd18a' : '#f0b429';
+  }).catch(function () {
+    el.textContent = 'Связь с сервером: нет ❌ — проверьте интернет или отключите блокировщик для этого сайта';
+    el.style.color = '#ff7b7b';
+  });
 })();
 </script>
 </body>
