@@ -958,3 +958,6 @@ article a, .post a, main p a, main li a, .story-text a, .card-caption a { color:
 article a:visited, main p a:visited, main li a:visited { color: var(--cyan); }
 a.btn, a.btn:visited, a.btn-cta, a.btn-cta:visited, .card a { color: var(--text); }
 a.btn * , a.btn-cta * { color: inherit; }
+
+/* кнопка поиска в шапке не должна разрывать «Ctrl K» на две строки */
+.search-trigger, .search-trigger kbd { white-space: nowrap; }

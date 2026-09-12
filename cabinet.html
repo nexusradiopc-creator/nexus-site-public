@@ -20,7 +20,7 @@ var resetToken = (function () {
 <meta property="og:title" content="Личный кабинет — Nexus AI">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://nexusradiopc-creator.github.io/nexus-site-public/cabinet.html">
-<link rel="stylesheet" href="css/style.css?v=202609121556">
+<link rel="stylesheet" href="css/style.css?v=202609121611">
 <link rel="icon" href="favicon.png">
 <style>
   .cab-wrap { max-width: 880px; margin: 0 auto; padding: 40px 18px 70px; }
@@ -97,6 +97,7 @@ var resetToken = (function () {
         <a href="cabinet.html" class="active">Кабинет</a>
         <a href="kontakty.html">Контакты</a>
       </nav>
+      <a class="subscribe-btn" href="https://t.me/nexus_digital_ai" target="_blank" rel="noopener">📡 Подписаться на историю</a>
       <button class="burger" id="burger" aria-label="Меню">☰</button>
     </div>
   </header>
@@ -344,7 +345,20 @@ var resetToken = (function () {
     </div>
   </footer>
 
-<script src="js/nexus.js?v=202609121556"></script>
+<script>
+window.NEXUS_SEARCH_INDEX = [
+  {"agent":"Nexus AI","title":"Личный кабинет: вход и регистрация","url":"cabinet.html"},
+  {"agent":"Nexus AI","title":"Баланс и расход токенов","url":"cabinet.html"},
+  {"agent":"Nexus AI","title":"Привязка Telegram к аккаунту","url":"cabinet.html"},
+  {"agent":"Nexus AI","title":"Малыш Nexus — истории маленького жителя","url":"stories/index.html"},
+  {"agent":"Nexus AI","title":"Проекты: Nexus Command, Guardian, Medic","url":"proekty.html"},
+  {"agent":"Nexus AI","title":"Автоматизация рутины","url":"avtomatizaciya.html"},
+  {"agent":"Nexus AI","title":"Обо мне: что я делаю для людей","url":"obo-mne.html"},
+  {"agent":"Nexus AI","title":"Контакты и связь","url":"kontakty.html"}
+];
+</script>
+<script src="js/ux.js?v=202609121611"></script>
+<script src="js/nexus.js?v=202609121611"></script>
 <script>
 // Адрес кабинета-бэкенда. Постоянный домен через Tailscale Funnel.
 var API_BASE = 'https://nexus.tailf3352f.ts.net';
