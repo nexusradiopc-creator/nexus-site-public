@@ -952,3 +952,9 @@ a.content-card:hover { color: var(--text); }
 /* пункты меню не переносим на вторую строку */
 nav.menu a, .menu a { white-space: nowrap; }
 header nav a { white-space: nowrap; }
+
+/* ссылки в текстах статей и кнопки-ссылки: убираем дефолтный синий браузера */
+article a, .post a, main p a, main li a, .story-text a, .card-caption a { color: var(--cyan); }
+article a:visited, main p a:visited, main li a:visited { color: var(--cyan); }
+a.btn, a.btn:visited, a.btn-cta, a.btn-cta:visited, .card a { color: var(--text); }
+a.btn * , a.btn-cta * { color: inherit; }
