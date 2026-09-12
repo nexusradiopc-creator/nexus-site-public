@@ -705,3 +705,158 @@ span.date small { font-size: 10px; color: var(--faint); margin-left: 3px; }
   color: var(--muted, #8fa3c8);
   opacity: 0.9;
 }
+
+/* Единые карточки: продукты, рассказы и подборки базы знаний.
+   Палитра остаётся в исходных классах; здесь только геометрия и типографика. */
+:root {
+  --content-card-gap: 18px;
+  --content-card-radius: 20px;
+  --content-card-shadow: 0 20px 60px rgba(0,0,0,.35);
+  --content-card-shadow-hover: 0 24px 50px rgba(0,0,0,.45);
+  --content-card-padding: 24px;
+}
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--card-columns, 3), minmax(0, 1fr));
+  gap: var(--content-card-gap);
+}
+.card-grid-single { --card-columns: 1; }
+.card-grid-related { --card-columns: 2; }
+.content-card,
+.page-body .content-card,
+.p-links a.content-card {
+  min-width: 0;
+  border-radius: var(--content-card-radius);
+  box-shadow: var(--content-card-shadow);
+  padding: var(--content-card-padding);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: relative;
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+.content-card.content-card-compact,
+.p-links a.content-card-compact {
+  padding: 12px;
+  min-height: 44px;
+  justify-content: center;
+  align-items: stretch;
+  border: 1px solid var(--card-brd);
+  background: var(--card);
+  text-decoration: none;
+}
+.related-cards { margin-block: 1em; }
+.related-cards > strong { display: block; margin-bottom: .8em; }
+.related-cards a { color: #8fbaff; }
+.card-separator { display: none; }
+.content-card h3,
+.card.latest-item.content-card h3,
+.stories-page .content-card h3 {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.35;
+  font-weight: 700;
+  letter-spacing: normal;
+  overflow-wrap: anywhere;
+  hyphens: none;
+}
+.content-card .card-caption,
+.page-body .content-card .card-caption {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+  min-width: 0;
+  flex: none;
+  position: relative;
+  overflow-wrap: normal;
+  hyphens: none;
+}
+.content-card .more { margin-top: auto; }
+.card-caption-short { display: block; white-space: nowrap; }
+.card-caption.is-enhanced .card-caption-full {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+/* Полная подпись видна также при клавиатурном фокусе любой ссылки карточки. */
+.content-card:hover .card-caption.is-enhanced .card-caption-full,
+.content-card:focus-within .card-caption.is-enhanced .card-caption-full {
+  clip-path: none;
+  width: 100%;
+  height: auto;
+  margin: 0;
+  padding: 8px;
+  inset: 0 auto auto 0;
+  z-index: 3;
+  border: 1px solid var(--card-brd);
+  border-radius: 8px;
+  background: var(--bg2);
+  overflow: visible;
+  white-space: normal;
+}
+.content-card .card-preview {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+  border-radius: var(--content-card-radius);
+}
+/* Квадратные — 1:1; вертикальные целиком помещаются в квадратную рамку. */
+.content-card .card-preview-square { aspect-ratio: 1; }
+.content-card:hover,
+.content-card:focus-within,
+.product-card.featured.content-card:hover {
+  box-shadow: var(--content-card-shadow-hover);
+}
+/* Не переопределяем transform у .reveal: его контролирует существующий JS/CSS. */
+a.content-card:hover { transform: translateY(-4px); }
+a.content-card:active { transform: translateY(1px); box-shadow: var(--content-card-shadow); }
+.product-card::before { pointer-events: none; }
+
+/* Колонка текста: наружные размеры статьи и положение оглавления прежние. */
+.post p, .post li { line-height: 1.65; }
+.post p { max-width: 70ch; margin-block: .9em; }
+.post > p:first-child, .story-text > p:first-child { margin-top: 0; }
+.post > :is(p, ul, ol, blockquote), .post .story-text { max-width: 70ch; }
+.post .story-text { font-size: 15.5px; }
+.post blockquote { line-height: 1.65; }
+
+/* Общие состояния охватывают также ссылки/кнопки, созданные поиском и меню. */
+:where(a[href], button, [role="button"]):hover {
+  text-decoration: underline;
+  text-underline-offset: .2em;
+}
+:where(a[href], button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 3px;
+}
+/* Специфичность выше прежнего outline:none у поля поиска. */
+.search-panel input:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+:where(a[href], button, [role="button"]):active {
+  outline: 2px solid currentColor;
+  outline-offset: 1px;
+}
+.content-card:focus-within { z-index: 2; }
+
+@media (min-width: 761px) and (max-width: 1080px) {
+  .card-grid { --card-columns: 2; }
+  .card-grid-single { --card-columns: 1; }
+}
+@media (max-width: 760px) {
+  :root { --content-card-gap: 14px; --content-card-padding: 18px; }
+  .card-grid { --card-columns: 1; }
+  .post .story-text { font-size: 14.5px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  body.js .reveal, body.js .reveal.in { opacity: 1; transform: none; }
+}
