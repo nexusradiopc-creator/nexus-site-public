@@ -99,9 +99,13 @@
   // триггер в шапку
   const nav = document.querySelector('.nav');
   if (nav) {
-    const btn = document.createElement('button');
-    btn.className = 'search-trigger'; btn.innerHTML = '🔍 Поиск <kbd>Ctrl K</kbd>';
+    let btn = nav.querySelector('.search-trigger');
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.className = 'search-trigger'; btn.innerHTML = '🔍 Поиск <kbd>Ctrl K</kbd>';
+      nav.insertBefore(btn, nav.querySelector('.subscribe-btn'));
+    }
+    btn.type = 'button';
     btn.onclick = openSearch;
-    nav.insertBefore(btn, nav.querySelector('.subscribe-btn'));
   }
 })();
