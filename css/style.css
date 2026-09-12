@@ -648,3 +648,51 @@ span.date small { font-size: 10px; color: var(--faint); margin-left: 3px; }
 /* v49: 3D-иконки соцсетей */
 .s-ico img { width: 64px; height: 64px; border-radius: 14px; display: block; box-shadow: 0 6px 20px rgba(0,0,0,.45); }
 .social-card { gap: 18px; }
+
+/* Мобильная доступность: основной текст >=13px, служебные подписи >=12px.
+   Десктопные размеры и оформление остаются в прежних правилах. */
+@media (max-width: 760px) {
+  body { font-size: max(13px, 1rem); }
+  .nav .subscribe-btn,
+  .p-tag, .sec-tag, .latest-head .lh-tag, .latest-head .lh-sub,
+  .side-card p, .side-list li, .status-block span,
+  .pl-step, .post-nav a, .companion .bubble,
+  .about-photo-cap, .about-stats .stat span,
+  .s-info span, .s-info p, .search-trigger { font-size: 13px; }
+
+  .logo small, .pl-arr, .search-trigger kbd, .search-results .r-agent,
+  .chapter-card .date, .chapter-card .date small,
+  span.date, .ch-body span.date, span.date small { font-size: 12px; }
+
+  /* Шапка остаётся в одном ряду; текст поиска может переноситься внутри кнопки. */
+  .nav { flex-wrap: nowrap; }
+  .nav .logo, .burger { flex-shrink: 0; }
+  .logo, .subscribe-btn, .nav .subscribe-btn { min-height: 44px; }
+  .search-trigger { min-width: 44px; min-height: 44px; padding-block: 10px; }
+  .btn-cta { min-height: 44px; padding-block: 12px; }
+  .burger, .foot-social a, .to-top { width: 44px; height: 44px; }
+  .side-list li { min-height: 44px; }
+
+  /* Все девять кейсов: прежние ссылки, тексты, порядок и цвет. */
+  .p-links a {
+    min-height: 44px; align-items: center; padding: 10px 12px;
+    background: var(--card); border: 1px solid var(--card-brd); border-radius: 12px;
+  }
+
+  /* Прежнее оформление раскрытого меню перенесено из JS без смены палитры. */
+  nav.menu.is-open {
+    display: flex; flex-direction: column; position: absolute;
+    right: 18px; top: 68px; z-index: 99;
+    background: rgba(10,16,32,.97); border: 1px solid var(--card-brd);
+    border-radius: 16px; padding: 10px; box-shadow: 0 20px 50px rgba(0,0,0,.5);
+    max-width: calc(100vw - 36px);
+    max-height: calc(100vh - 80px); max-height: calc(100dvh - 80px);
+    overflow-y: auto;
+  }
+  nav.menu a { min-height: 44px; display: flex; align-items: center; width: 100%; }
+  .logo:focus-visible, .burger:focus-visible, nav.menu a:focus-visible,
+  .subscribe-btn:focus-visible, .search-trigger:focus-visible, .btn-cta:focus-visible,
+  .p-links a:focus-visible, .foot-social a:focus-visible, .to-top:focus-visible {
+    outline: 2px solid var(--cyan); outline-offset: 2px;
+  }
+}

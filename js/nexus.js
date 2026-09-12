@@ -8,19 +8,52 @@
 /* ===== бургер-меню: работает на всех страницах, независимо от персонажа ===== */
 (function () {
   const burger = document.getElementById('burger');
-  if (!burger) return;
+  const menu = document.querySelector('nav.menu');
+  if (!burger || !menu) return;
+  const mobile = matchMedia('(max-width: 760px)');
+  menu.id = menu.id || 'site-menu';
+  burger.type = 'button';
+  burger.setAttribute('aria-controls', menu.id);
+  burger.setAttribute('aria-expanded', 'false');
+  burger.setAttribute('aria-label', 'Открыть меню');
+
+  function closeMenu(restoreFocus = false) {
+    menu.classList.remove('is-open');
+    burger.setAttribute('aria-expanded', 'false');
+    burger.setAttribute('aria-label', 'Открыть меню');
+    if (restoreFocus) burger.focus();
+  }
   burger.addEventListener('click', () => {
-    const m = document.querySelector('nav.menu');
-    if (!m) return;
-    const isOpen = m.style.display === 'flex';
-    m.style.display = isOpen ? 'none' : 'flex';
-    m.style.flexDirection = 'column';
-    m.style.position = 'absolute';
-    m.style.right = '18px'; m.style.top = '68px';
-    m.style.background = 'rgba(10,16,32,.97)';
-    m.style.border = '1px solid var(--card-brd)';
-    m.style.borderRadius = '16px'; m.style.padding = '10px';
-    m.style.boxShadow = '0 20px 50px rgba(0,0,0,.5)'; m.style.zIndex = '99';
+    if (!mobile.matches) return;
+    if (menu.classList.contains('is-open')) {
+      closeMenu(true);
+      return;
+    }
+    menu.classList.add('is-open');
+    burger.setAttribute('aria-expanded', 'true');
+    burger.setAttribute('aria-label', 'Закрыть меню');
+    menu.querySelector('a[href]')?.focus();
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && menu.classList.contains('is-open')) {
+      event.preventDefault();
+      closeMenu(true);
+    }
+  });
+  menu.addEventListener('click', event => {
+    if (mobile.matches && event.target.closest('a[href]')) closeMenu(true);
+  });
+  document.addEventListener('click', event => {
+    if (!menu.contains(event.target) && !burger.contains(event.target)) {
+      closeMenu(mobile.matches && menu.contains(document.activeElement));
+    }
+  });
+  // Обычная навигация, не модальное окно: Tab свободно выходит из меню.
+  document.addEventListener('focusin', event => {
+    if (!menu.contains(event.target) && !burger.contains(event.target)) closeMenu();
+  });
+  mobile.addEventListener('change', () => {
+    closeMenu(mobile.matches && menu.contains(document.activeElement));
   });
 })();
 (function () {
