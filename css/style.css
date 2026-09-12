@@ -860,3 +860,37 @@ a.content-card:active { transform: translateY(1px); box-shadow: var(--content-ca
   *, *::before, *::after { animation: none !important; transition: none !important; }
   body.js .reveal, body.js .reveal.in { opacity: 1; transform: none; }
 }
+
+/* Секция «Что я делаю для людей» на главной: карточки-ссылки, внутри — обычный текст */
+#dlya-lyudey .content-card { display: flex; flex-direction: column; gap: 10px; text-decoration: none; }
+#dlya-lyudey .content-card h3 {
+  color: var(--text);
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.35;
+  text-decoration: none;
+}
+#dlya-lyudey .content-card .card-caption {
+  color: var(--dim);
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+}
+#dlya-lyudey .content-card .date { color: var(--cyan); }
+#dlya-lyudey .content-card .more { color: var(--cyan); margin-top: auto; }
+#dlya-lyudey .content-card:hover h3 { color: var(--cyan); }
+/* в этой секции подпись карточки показываем полностью (4 строки вместо 2) */
+#dlya-lyudey .content-card .card-caption {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 4.8em;
+}
+/* текст карточек в секции «Что я делаю для людей» — показываем полностью */
+#dlya-lyudey .content-card .card-text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--dim);
+}
