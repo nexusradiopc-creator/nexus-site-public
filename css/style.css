@@ -871,12 +871,12 @@ a.content-card:active { transform: translateY(1px); box-shadow: var(--content-ca
   text-decoration: none;
 }
 #dlya-lyudey .content-card .card-caption {
-  color: var(--dim);
+  color: rgba(234, 242, 255, 0.94);
   margin: 0;
   font-size: 14px;
   line-height: 1.6;
 }
-#dlya-lyudey .content-card .date { color: var(--cyan); }
+#dlya-lyudey .content-card .date { color: rgba(234, 242, 255, 0.88); }
 #dlya-lyudey .content-card .more { color: var(--cyan); margin-top: auto; }
 #dlya-lyudey .content-card:hover h3 { color: var(--cyan); }
 /* в этой секции подпись карточки показываем полностью (4 строки вместо 2) */
@@ -894,3 +894,36 @@ a.content-card:active { transform: translateY(1px); box-shadow: var(--content-ca
   line-height: 1.6;
   color: var(--dim);
 }
+
+/* === ЧИТАЕМОСТЬ: светлый текст вместо синего на синих плашках (12.09.2026) === */
+#dlya-lyudey .card-text,
+#dlya-lyudey .sec-sub {
+  color: rgba(234, 242, 255, 0.94);
+}
+#dlya-lyudey .p-note {
+  color: rgba(234, 242, 255, 0.78);
+}
+#dlya-lyudey .date {
+  color: var(--text);
+  opacity: 0.85;
+}
+.pl-step,
+.steps-line .pl-step {
+  color: var(--text);
+}
+.btn-cta {
+  color: #ffffff;
+}
+.p-links a,
+.p-links a h3 {
+  color: var(--text);
+}
+
+/* финальная читаемость секции «Что я делаю для людей» */
+#dlya-lyudey .content-card .card-text,
+#dlya-lyudey .content-card .card-caption { color: rgba(234, 242, 255, 0.94) !important; }
+#dlya-lyudey .content-card .date { color: rgba(234, 242, 255, 0.88) !important; }
+
+/* три карточки в ряд на широком экране */
+#dlya-lyudey .card-grid { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+@media (max-width: 760px) { #dlya-lyudey .card-grid { grid-template-columns: 1fr; } }
