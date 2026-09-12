@@ -280,7 +280,7 @@ var resetToken = (function () {
           </div>
 
           <p class="cab-hint" style="margin-top:12px;font-size:15px">
-            Что-то не получилось? Напишите помощнику — он объяснит. Мы рядом. 🤝
+            Что-то не получилось? Напишите помощнику — он объяснит. Мы рядом. 🤝<br>Не открывается кабинет или не нажимается «Войти»? Отключите блокировщик рекламы (Brave, AdGuard, uBlock) для этого сайта или откройте кабинет в другом браузере.
           </p>
         </div>
 
@@ -790,13 +790,27 @@ window.addEventListener('storage', function (event) {
 (function () {
   var el = document.getElementById('cab-conn');
   if (!el) return;
-  fetch(API_BASE + '/api/health').then(function (r) {
-    el.textContent = r.ok ? 'Связь с сервером: есть ✅' : 'Связь с сервером: ошибка ' + r.status;
-    el.style.color = r.ok ? '#7fd18a' : '#f0b429';
-  }).catch(function () {
-    el.textContent = 'Связь с сервером: нет ❌ — проверьте интернет или отключите блокировщик для этого сайта';
-    el.style.color = '#ff7b7b';
-  });
+  function check() {
+    el.textContent = 'Проверяем связь…';
+    el.style.color = '#8fa3c8';
+    fetch(API_BASE + '/api/health').then(function (r) {
+      el.innerHTML = r.ok
+        ? 'Связь с сервером: есть ✅'
+        : 'Связь с сервером: ошибка ' + r.status + ' <button id="cab-conn-retry" style="margin-left:8px">Проверить снова</button>';
+      el.style.color = r.ok ? '#7fd18a' : '#f0b429';
+      bind();
+    }).catch(function () {
+      el.innerHTML = 'Связь с сервером: нет ❌ — проверьте интернет или отключите блокировщик рекламы для этого сайта ' +
+                     '<button id="cab-conn-retry" style="margin-left:8px">Проверить снова</button>';
+      el.style.color = '#ff7b7b';
+      bind();
+    });
+  }
+  function bind() {
+    var b = document.getElementById('cab-conn-retry');
+    if (b) b.onclick = check;
+  }
+  check();
 })();
 </script>
 </body>
