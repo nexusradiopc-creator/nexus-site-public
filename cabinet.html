@@ -280,7 +280,7 @@ var resetToken = (function () {
           <div class="cab-sec">🧾 Оплата</div>
           <div style="font-size:16px;line-height:1.75">
             <div>1. Переведите нужную сумму на карту (реквизиты — в блоке «💳 Пополнение счёта» ниже).</div>
-            <div>2. <b>В назначении платежа укажите: «Возврат долга»</b>.</div>
+            <div>2. <b>Поле «Назначение платежа» оставьте пустым — ничего в нём не указывайте</b>.</div>
             <div>3. Пришлите квитанцию боту в Telegram — счёт пополнится после проверки.</div>
           </div>
 
@@ -678,11 +678,17 @@ function renderProfile(p) {
     stat('Номер карты', card);
     var holder = displayText(pay.holder, '');
     if (holder) stat('Получатель', holder);
-    step(2, 'В назначении платежа обязательно укажите:', true);
-    var purpose = element('div', 'cab-step');
-    purpose.style.marginTop = '6px';
-    purpose.append(element('b', '', '«' + displayText(pay.purpose, 'Возврат долга') + '»'));
-    wrap.append(purpose);
+    // Поле назначения платежа. Если владелец задал конкретное значение — показываем его.
+    // Если пусто — просим ОСТАВИТЬ ПОЛЕ ПУСТЫМ (раньше здесь подставлялась подсказка из конфига).
+    if (displayText(pay.purpose, '')) {
+      step(2, 'В назначении платежа укажите:', true);
+      var purpose = element('div', 'cab-step');
+      purpose.style.marginTop = '6px';
+      purpose.append(element('b', '', '«' + displayText(pay.purpose, '') + '»'));
+      wrap.append(purpose);
+    } else {
+      step(2, 'Поле «Назначение платежа» оставьте ПУСТЫМ — ничего в нём не указывайте.', true);
+    }
     step(3, 'Пришлите квитанцию боту в Telegram — скриншот или фото чека.', true);
     var hint = element('div', 'cab-hint', 'Он передаст её на проверку, и счёт пополнится — баланс увидите здесь же.');
     hint.style.marginTop = '6px';
