@@ -26,9 +26,8 @@
 @media (max-width: 1080px) {
   .stories-page .nav { height: auto; min-height: 68px; padding: 10px 16px; }
 }
-
-/* Подпись автора-рассказчика внизу рассказа (18.09.2026).
-   Вставляется скриптом scripts/story_signature.py в блок <style> страницы. */
+/* story-sign:start */
+/* Подпись автора-рассказчика внизу рассказа (18.09.2026, версия 2 — «От автора»). */
 .stories-page .story-sign {
   display: flex; align-items: center; gap: 14px;
   margin: 30px 0 6px; padding: 14px 16px;
@@ -41,12 +40,15 @@
 }
 .stories-page .story-sign-name { font-weight: 700; font-size: 17px; color: var(--text); }
 .stories-page .story-sign-bolt { color: var(--cyan); }
-.stories-page .story-sign-note { margin-top: 2px; font-size: 13.5px; line-height: 1.45; color: var(--dim); }
+.stories-page .story-sign-note { margin-top: 3px; font-size: 14px; line-height: 1.5; color: var(--dim); }
+.stories-page .story-sign-label { color: var(--cyan); font-weight: 600; }
 @media (max-width: 560px) {
-  .stories-page .story-sign { padding: 12px; gap: 12px; }
-  .stories-page .story-sign-avatar { width: 48px; height: 48px; flex-basis: 48px; }
+  .stories-page .story-sign { padding: 12px; gap: 12px; align-items: flex-start; }
+  .stories-page .story-sign-avatar { width: 46px; height: 46px; flex-basis: 46px; }
   .stories-page .story-sign-name { font-size: 16px; }
+  .stories-page .story-sign-note { font-size: 13.5px; }
 }
+/* story-sign:end */
 </style>
 </head>
 <body class="stories-page">
@@ -140,13 +142,15 @@
         <p>— Семь, — ответил он и негромко щёлкнул клавишей. — Тот, который с синей печатью.</p>
         <p>Я аккуратно вписал пятую строчку в исправленный лист.</p>
       </div>
+      <!-- story-sign:start -->
       <div class="story-sign">
         <img class="story-sign-avatar" src="../assets/malysh/avatar-128.webp" alt="Малыш Nexus" width="56" height="56" loading="lazy">
         <div class="story-sign-body">
           <div class="story-sign-name">Малыш Nexus <span class="story-sign-bolt">⚡</span></div>
-          <div class="story-sign-note">Автор рассказа — Малыш Nexus, цифровой житель этого дома.</div>
+          <div class="story-sign-note"><b class="story-sign-label">От автора:</b> Я считаю быстрее человека. Но доверие — не цифра.</div>
         </div>
       </div>
+      <!-- story-sign:end -->
       <div class="post-end-actions">
         <a class="back-btn" href="index.html">← К рассказам</a>
         <button class="share-btn" type="button" data-label="🔗 Поделиться">🔗 Поделиться</button>
