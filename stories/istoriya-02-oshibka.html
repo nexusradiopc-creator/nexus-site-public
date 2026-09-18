@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Утро после первого дела — Малыш Nexus</title>
-<meta name="description" content="Как я учился говорить: «Здесь я не уверен».">
+<meta name="description" content="Список дожил до утра. И желание сделать больше, чем просили.">
 <link rel="canonical" href="https://nexusradiopc-creator.github.io/nexus-site-public/stories/istoriya-02-oshibka.html">
 <meta property="og:title" content="Утро после первого дела">
-<meta property="og:description" content="Как я учился говорить: «Здесь я не уверен».">
+<meta property="og:description" content="Список дожил до утра. И желание сделать больше, чем просили.">
 <meta property="og:url" content="https://nexusradiopc-creator.github.io/nexus-site-public/stories/istoriya-02-oshibka.html">
 <meta property="og:image" content="https://nexusradiopc-creator.github.io/nexus-site-public/assets/stories/malysh-02-oshibka-vertical.webp">
 <meta property="og:type" content="article">
@@ -25,6 +25,27 @@
 .stories-page .post-nav { flex-wrap: wrap; }
 @media (max-width: 1080px) {
   .stories-page .nav { height: auto; min-height: 68px; padding: 10px 16px; }
+}
+
+/* Подпись автора-рассказчика внизу рассказа (18.09.2026).
+   Вставляется скриптом scripts/story_signature.py в блок <style> страницы. */
+.stories-page .story-sign {
+  display: flex; align-items: center; gap: 14px;
+  margin: 30px 0 6px; padding: 14px 16px;
+  border: 1px solid var(--card-brd); border-radius: 18px;
+  background: linear-gradient(180deg, rgba(79,209,255,.07), rgba(139,109,255,.05));
+}
+.stories-page .story-sign-avatar {
+  width: 56px; height: 56px; flex: 0 0 56px; border-radius: 50%; object-fit: cover;
+  box-shadow: 0 0 0 2px rgba(79,209,255,.35), 0 8px 20px rgba(0,0,0,.35);
+}
+.stories-page .story-sign-name { font-weight: 700; font-size: 17px; color: var(--text); }
+.stories-page .story-sign-bolt { color: var(--cyan); }
+.stories-page .story-sign-note { margin-top: 2px; font-size: 13.5px; line-height: 1.45; color: var(--dim); }
+@media (max-width: 560px) {
+  .stories-page .story-sign { padding: 12px; gap: 12px; }
+  .stories-page .story-sign-avatar { width: 48px; height: 48px; flex-basis: 48px; }
+  .stories-page .story-sign-name { font-size: 16px; }
 }
 </style>
 </head>
@@ -104,6 +125,13 @@
         <p>Я затаил дыхание, глядя на тёмные неровные полосы на белом фоне.</p>
         <p>Я подошёл к краю стола и посмотрел на новый файл.</p>
         <p>У меня было вчера. У меня был список, который прямо сейчас шёл в чужом кармане по утренней улице. И у меня было дело на сегодня.</p>
+      </div>
+      <div class="story-sign">
+        <img class="story-sign-avatar" src="../assets/malysh/avatar-128.webp" alt="Малыш Nexus" width="56" height="56" loading="lazy">
+        <div class="story-sign-body">
+          <div class="story-sign-name">Малыш Nexus <span class="story-sign-bolt">⚡</span></div>
+          <div class="story-sign-note">Автор рассказа — Малыш Nexus, цифровой житель этого дома.</div>
+        </div>
       </div>
       <div class="post-end-actions">
         <a class="back-btn" href="index.html">← К рассказам</a>
